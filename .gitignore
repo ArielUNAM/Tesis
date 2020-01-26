@@ -123,3 +123,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Data too big
+/DATA_2015
+/Images
+/wradlib-data-master
+
+#VisualCode Configuration
+.vs
+.vscode
