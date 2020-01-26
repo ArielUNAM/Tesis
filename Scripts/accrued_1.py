@@ -36,7 +36,7 @@ except:
 #Definimos el direcotrio de datos del radar.
 #path = r'/home/aceron/Documentos/Radar/RAW_DATA'
 #pathImg = r'/home/aceron/Documentos/Radar/Images'
-path = r'D:\\Users\\dooph\\Documents\\VisualCode\\Tesis\\RAW_2015'
+path = r'D:\\Users\\dooph\\Documents\\VisualCode\\Tesis\\DATA_2015'
 pathImg = r'D:\\Users\\dooph\\Documents\\VisualCode\\Tesis\\Images'
 os.chdir(path)
 
@@ -62,8 +62,11 @@ dataMatriz = np.zeros((360,921))
 i = 0   #Contador
 j = 0
 
+numberofE = 10
 #Iniciamos el ciclo que recogera el acumulado
 for fname in allFiles:
+#for index in range(numberofE):
+    #fname = allFiles[index]
     #print(fname)
     j += 1
     f = wrl.util.get_wradlib_data_file(fname)   #Set the name 
@@ -82,16 +85,18 @@ for fname in allFiles:
     #print(range_rad)
     #print(range_rad[-1],range_rad.shape[0])
     print("Restantes: ",len(allFiles)-j)
+    #print("Restantes: ",numberofE - index)
     #Cuando el valor de exploración es 236000 es porque hubo lluvia, que es el momento que nos interesa
     if range_rad[-1] == 236000.0 and range_rad.shape[0] == 921:
         if fcontent['product_hdr']['product_configuration']['product_specific_info']['sweep_number'] == 1:
-            print("Date:",fname[54:58],fname[58:60],fname[60:62],"Time:",fname[62:64],fname[64:66])
             #Datos de la gfecha según su etiqueta en el nombre
-            año = fname[54:58]  
-            mes = fname[58:60]
-            dia = fname[60:62]
-            hora = fname[62:64]
-            minuto = fname[64:66]
+            #Se puede mejorar la identificación de la hora si se restra el tamaño del path menos el tamaño total de fname y los quince primeros elementos del nombre
+            año = fname[73:77]  
+            mes = fname[77:79]
+            dia = fname[79:81]
+            hora = fname[81:83]
+            minuto = fname[83:85]
+            print("Date:",año,"-",mes,"-",dia,"\nTime:",hora,":",minuto)
             range_radc_bien = range_rad
             d = fcontent['data'][1]['sweep_data']['DB_DBZ']['data']
             #Limpiamos y filtramos la información
@@ -122,7 +127,7 @@ for fname in allFiles:
             pl.grid(color="grey")
             ii = i  
             ii = str(ii)
-            pl.savefig(pathImg+ii+'.png')
+            pl.savefig(pathImg+"/"+ii+'.png')
             print('Imagen guardada')
             i += 1
             pl.close()
@@ -139,4 +144,4 @@ cb.set_label("mm")
 pl.xlim(-300,300)
 pl.ylim(-300,300)
 pl.grid(color="grey")
-pl.savefig(path+'acumulacion'+'.png')       
+pl.savefig(path+'/acumulacion'+'.png')       
