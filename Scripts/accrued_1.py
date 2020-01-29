@@ -7,6 +7,9 @@
 #
 ####################################################
 
+
+#Para poder user la libreria wradlib es necesario contar con datos contenidos en https://github.com/wradlib/wradlib-data/blob/master/README.md
+#Paso siguiente exportarlos.
 #bash: export WRADLIB_DATA=/path/to/wradlib-data
 #current cmd: set WRADLIB_DATA D:\Users\doop\Documents\VisualCode\Tesis\wradlib_data_master
 #code D:\Users\dooph\Anaconda3\envs\wradlib\lib\site-packages\wradlib\util.py
@@ -35,45 +38,67 @@ except:
     pl.ion()
 
 #Definimos el direcotrio de datos del radar.
+
 #path = r'/home/aceron/Documentos/Radar/RAW_DATA'
 #pathImg = r'/home/aceron/Documentos/Radar/Images'
 path = r'D:\\Users\\dooph\\Documents\\VisualCode\\Tesis\\DATA_2015'
 pathImg = r'D:\\Users\\dooph\\Documents\\VisualCode\\Tesis\\Images'
 os.chdir(path)
 
+#Impresión del path de datos
 print("Directory of data:", os.getcwd())
 
 #Definimos las fechas para la lectura de datos
+#En realidad solo hacemos uso del mes y del dia, sin embargo se puede modificar
 dateS = date(2015, 3, 9)    #Start date
 dateE = date(2015, 10, 30)     #End date
 delta = dateE - dateS
 
-#Definimos el nombre de los archivos segun la fecha definida
-filename = "/RAW_NA_000_236_2015"+'%02d'%dateS.month+'%02d'%dateS.day+"*"
+#Definimos el nombre de los archivos según la fecha definida
+
+#Fecha usando el año
+filename = "/RAW_NA_000_236_2015"+'%04d'%dateS.year+"*"
+#Fecha usando el mes
 #filename = "/RAW_NA_000_236_2015"+'%02d'%dateS.month+"*"
+#Fecha usando el día
+#'%04d'%dateS.year+'%02d'%dateS.month+'%02d'%dateS.day+"*"
+#Sin uso de fecha
 #filename = "/RAW_NA_000_236_2015"+"*"
 
+#Obtenemos una lista ordenada de los datos usando la ruta de la base de datos y la nomenclatura de archivos
 allFiles = sorted(glob.glob(path+filename))
-#print(len(allFiles), "from",dateS,"to",dateE)
 print("All files from ", dateS.year, "number of files: ", len(allFiles))
 
 #Creamos una matriz para guardar el acumulado
 dataMatriz = np.zeros((360,921))
 
-i = 0   #Contador
-j = 0
+i = 0   #Contador para enumerar las imagenes
+j = 0   #Contador para saber la cantidad de datos procesados
 
+#Variables para depurar el programa
 numberofE = 50
-#Iniciamos el ciclo que recogera el acumulado
+#Iniciamos el ciclo que recogerá el acumulado
 #for fname in allFiles:
 for index in range(numberofE):
+    #Recorremos cada nombre almacenado en allFiles
     fname = allFiles[index]
     #print(fname)
-    j += 1
-    f = wrl.util.get_wradlib_data_file(fname)   #Set the name 
-    #print(f)
-    fcontent = wrl.io.read_iris(f)   #Read data from file
-    #type(fcontent)
+    j += 1  #Aumento en el contador de datos procesados
+    
+    #Cadena que almacena el nombre del archivo a examinar
+    f = wrl.util.get_wradlib_data_file(fname)   
+    #Lectura de la cadena de texto referente al archivo de datos
+    #en nuestro caso suponemos que los datos son Vaisala Sigmet (VS) por lo
+    #que usamos el método read_iris que permite leer los datos provenientes
+    #de un archivo VS, a la salida de la lectura obtenemos un diccionario que
+    #contiene todos los datos contenidos usualmente en este tipo de archivos
+    #Un nivel abajo de la carpeta guardo el archivo que contiene información de Vaisal
+    fcontent = wrl.io.read_iris(f)  
+    #print(fcontent.keys())
+    #print the entire content including values of data and
+    #metadata of the first sweep
+    #(numpy arrays will not be entirely printed)
+    #print(fcontent['data'][1])
     nbins = fcontent['product_hdr']['product_end']['number_bins']
     #print(nbins)
     gate_0 = fcontent['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100
