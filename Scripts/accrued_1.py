@@ -18,17 +18,18 @@
 #Librerias
 import glob
 import os
-import wradlib as wrl
-from scipy import stats
 import warnings
+from datetime import date, timedelta
+
 import matplotlib.pyplot as pl
 import numpy as np
-from wradlib.util import get_wradlib_data_file
-from wradlib.io import *
+import wradlib as wrl
 import wradlib.georef as georef
 import wradlib.io as io
 import wradlib.util as util
-from datetime import date, timedelta
+from scipy import stats
+from wradlib.io import *
+from wradlib.util import get_wradlib_data_file
 
 warnings.filterwarnings('ignore')
 
@@ -54,14 +55,19 @@ dateS = date(2015, 3, 9)    #Start date
 dateE = date(2015, 10, 30)     #End date
 delta = dateE - dateS
 
+####Temporales
+año = str(dateS.year)
+mes = str(dateS.month)
+dia = str(dateS.day)
+
 #Definimos el nombre de los archivos según la fecha definida
 
 #Fecha usando el año
-filename = "/RAW_NA_000_236_2015"+'%04d'%dateS.year+"*"
+#filename = "/RAW_NA_000_236_2015"+'%04d'%dateS.year+"*"
 #Fecha usando el mes
 #filename = "/RAW_NA_000_236_2015"+'%02d'%dateS.month+"*"
 #Fecha usando el día
-#'%04d'%dateS.year+'%02d'%dateS.month+'%02d'%dateS.day+"*"
+filename = "/RAW_NA_000_236_"+'%04d'%dateS.year+'%02d'%dateS.month+'%02d'%dateS.day+"*"
 #Sin uso de fecha
 #filename = "/RAW_NA_000_236_2015"+"*"
 
@@ -129,23 +135,35 @@ for index in range(numberofE):
             print("Maximo: ", np.ma.max(b), "Minimo: ", np.ma.min(b))
 
             #Eliminamos los elementos que no se mueven
-            d[b == 0] = 0
+            #d[b == 0] = 0
             d[b.mask == True] = 0
             #Limpiamos y filtramos la información
             clutter = wrl.clutter.filter_gabella(d, tr1=12, n_p=6, tr2=1.1)
             data_no_clutter = wrl.ipol.interpolate_polar(d, clutter)
             #pia = wrl.atten.correctAttenuationKraemer(data_no_clutter)
             # pia = wrl.atten.constraint_pia(data_no_clutter)
-            pia = wrl.atten.correct_attenuation_constrained(data_no_clutter)
+            pia = wrl.atten.correct_attenuation_constrained(data_no_clutter, a_max=1.67e-4,
+                a_min=2.33e-5,
+                n_a=100,
+                b_max=0.7,
+                b_min=0.65,
+                n_b=6,
+                gate_length=0.25,
+                constraints=[wrl.atten.constraint_dbz,
+                 wrl.atten.constraint_pia],
+                constraint_args=[[59.0],[20.0]])
             data_attcorr = data_no_clutter + pia
+            #data_attcorr = data_no_clutter
             Z = wrl.trafo.idecibel(data_attcorr) 
             #R = wrl.zr.z2r(Z, a=220., b=2.0)
-            R = wrl.zr.z_to_r(Z,a=220.00,b=2.0)
+            R = wrl.zr.z_to_r(Z,a=220.00,b=1.6)
             #depth = wrl.trafo.r2depth(R, 390)
             depth = wrl.trafo.r_to_depth(R,390)
             Zc = depth*4
+            print("ZC max:", np.max(Zc))
             dataMatriz += Zc
-            Zc = np.ma.masked_where(Zc < 0.05, Zc)
+            print("DM max: ",np.max(dataMatriz))
+            #Zc = np.ma.masked_where(Zc < 0.05, Zc)
             cmap = pl.cm.viridis
             cmap.set_bad(color='white')
             ax, cf = wrl.vis.plot_ppi(Zc, cmap="viridis")
@@ -164,7 +182,7 @@ for index in range(numberofE):
             i += 1
             pl.close()
 
-dataMatriz = np.ma.masked_where(dataMatriz < 0.05, dataMatriz)
+#dataMatriz = np.ma.masked_where(dataMatriz < 0.05, dataMatriz)
 cmap=pl.cm.viridis
 cmap.set_bad(color='white')
 ax, cf = wrl.vis.plot_ppi(dataMatriz , cmap="viridis")
