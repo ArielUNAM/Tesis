@@ -1,7 +1,171 @@
-import os
-import wradlib as wl
+################
+#   Ariel Cerón G.
+#
+#   UNAM
+#   Queratero, 2021
+#   Tesis de licenciatura
+#
+#   Funciones auxiliares para trabajar con la libreria wradlib
+#
+########################################################
 
-def getDicData(path:str,basename:str) -> dict:
+import os
+from collections import OrderedDict
+import wradlib as wl
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Processing functions
+#######################
+def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shape: int= -1):
+    """ Regresa un archivo dBZ listo para ser usado en alguna aplicación numerica o para graficar 
+
+    Los archivos de radar se encuentran codificados en diferentes formatos, esta es una de las principales limitantes para los usuarios de los radares. wradlib otorga un conjunto de funciones que permiten, leer, filtrar, corregir y presentar de forma gráfica la información contenida en los archivos producidor por un radar. El conjunto de pasos para transformar la información de radar a un formato manipulable es conocido omo "radar data processin chain", estos pasos no son unicos y cada aplicación puede requerir de más o menos pasos, sin embargo podemos destacr:
+        1- Lectura
+        2- Corrección de desorden
+        3- Corrección de la atenuación
+        4- Conversión de reflectividad a dBZ (Z to R)
+        5- Presentación de los datos
+    En esta función nos enfocamos en los puntos 2, 3 y agregamos algunos parámetros utiles para lograr el objetivo de la tesis.
+    More info https://docs.wradlib.org/en/1.1.0/notebooks/basics/wradlib_workflow.html
+
+    Parameters
+    ----------
+    data : OrderedDict
+        Por definir
+    elev : list
+        El usuario puede elegir el rango de elvaciones que mejor le permitan desarrollar la actividad.
+    dist : int
+        La distancia máxima de exploración tambien puede ser definida, para que todos los datos sea homogoneos en tamaño
+    shape : int
+        Por definir
+
+    Outputs:
+    --------
+    dBZ: numpy.narray
+        Por deinir 
+    """    
+    if ( (type(data) != OrderedDict) ):
+        raise "File not expected"
+    else:
+        dBZ= data['data'][1]['sweep_data']['DB_DBZ']['data']
+        vel= data['data'][1]['sweep_data']['DB_VEL']['data']
+        if ( not elev ):
+            pass
+        if ( dist == -1 ):
+            pass
+        if ( shape == -1 ):
+            pass
+
+    
+    #Desorden (clutter)
+    desorden = wl.clutter.filter_gabella(dBZ, tr1=12,n_p=6, tr2=1.1)
+    dBZ_ord = wl.ipol.interpolate_polar(dBZ,desorden)
+
+    #Atenuación
+    pia_kraemer = wl.atten.correct_attenuation_constrained(
+    dBZ_ord,
+    a_max=1.67e-4,
+    a_min=2.33e-5,
+    n_a=100,
+    b_max=0.7,
+    b_min=0.65,
+    n_b=6,
+    gate_length=1.,
+    constraints=[wl.atten.constraint_dbz],
+    constraint_args=[[59.0]])
+    return(dBZ_ord + pia_kraemer,vel)
+    
+def dBZ_to_Zc(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390)->list:
+    """ Converting Reflectivity to Rainfall
+
+    Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
+
+    More info: https://docs.wradlib.org/en/stable/notebooks/basics/wradlib_get_rainfall.html
+
+    Parameters
+    ----------
+    dBZ : [type]
+        [description]
+    vel : [type]
+        [description]
+    a : float, optional
+        [description], by default 200
+    b : float, optional
+        [description], by default 1.6
+    intervalos : int, optional
+        [description], by default 390
+
+    Returns
+    -------
+    list
+        [description]
+    """        
+    Z = wl.trafo.idecibel(dBZ)
+    R = wl.zr.z_to_r(Z,a=a,b=b)
+    V = wl.trafo.r_to_depth(R,intervalos)
+    return(np.multiply(vel,V))
+
+def add_matrix(matrix,data,i=None):
+    """
+        Agrega la matriz del acumulado
+    """
+    if i==1:
+        return(data)
+    else:
+        return(np.append(matrix,data).reshape(i,360,1201))
+        
+def plot_ppi(fig,acum,title,xlabel,ylabel,cmap):
+    
+    ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig)
+    #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    cb = plt.colorbar(cf, shrink=0.8)
+    cb.set_label("mm")
+    #plt.xlim(-128,128)
+    #plt.ylim(-128,128)
+    plt.grid(color="grey")
+    
+
+# Get info functions
+####################
+
+def getCoord(fcontent):
+    return(fcontent['product_hdr']['product_end']['latitude'],
+          fcontent['product_hdr']['product_end']['longitude'])
+
+def getElev(fcontent,elev)->bool:
+    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
+    print(fcontent['product_hdr']['product_configuration']['product_name'])
+    if (fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean() <  elev):
+        return(True)
+    else:
+        return(False)
+
+def getRange(fcontent,dist,shape):
+
+    nbins=(fcontent['product_hdr']['product_end']['number_bins'])
+    gate_0 =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
+    gate_nbin =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
+    gate_size=round((gate_nbin - gate_0)/(nbins))
+    range_rad=gate_0 + gate_size * np.arange(nbins, dtype='float32')
+    print(range_rad[-1],range_rad.shape[0])
+    if (range_rad[-1] == dist) and (range_rad.shape[0] == shape):
+        return(True)
+    else:
+        return(False)
+
+def getVer(fcontent):
+    try:
+        fcontent['product_hdr']['product_end']['iris_version_created']
+    except:
+        raise "Don't found version"
+
+# Get data functions
+####################
+
+def getData(path:str,basename:str) -> dict:
     """Devuelve un diccionario del nombre de los archivos
 
     Dado un path que contiene diversos archivos de radar, regresa un diccionario de dos niveles ordenado de la siguiente forma:
@@ -21,7 +185,7 @@ def getDicData(path:str,basename:str) -> dict:
     dict
         Directorio de la información obtenida en el directorio dado
     """    
-    n= checkName(basename)
+    n= getName(basename)
     
     orderList= sorted(os.listdir(path))
     orderDicMon= dicMonth(orderList,n)
@@ -63,7 +227,7 @@ def dicMonth(orderList:list,n:int)->dict:
         orderDicMon[mes].append(data)
     return orderDicMon
 
-def checkName(basename:str)->int:
+def getName(basename:str)->int:
     """Regresa la posición inicial de la fecha según el nombre dado
 
     Parameters
@@ -81,60 +245,32 @@ def checkName(basename:str)->int:
     else:
         return 0
 
-def read_data(path:str,filename:str,elev=None):
-    """
-        Regresa la lectura de un archivo usando read iris
-        
-    Inputs
-    ------
-    path:str
-        Ruta del directorio donde se encuentran los datos
-    filename:str
-        Nombre del archivo a leer
-    """
-    #to MB
-    size = os.stat(path+filename).st_size / (1024 * 1024)
-    try:
-        if elev == None:
-            return(wl.io.iris.read_iris(path+filename))
-        else:
-            if(getElev(wl.io.iris.read_iris(path+filename),elev)):
-                return(wl.io.iris.read_iris(path+filename))
-            else:
-                return((filename,size))
-    except:
-        return((filename,size))
-    
-def dBZ_to_Zc(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390)->list:
-    """
-        Función auxiliar para obtener datos
-    """
-    Z = wl.trafo.idecibel(dBZ)
-    R = wl.zr.z_to_r(Z,a=a,b=b)
-    V = wl.trafo.r_to_depth(R,intervalos)
-    return(np.multiply(vel,V))
+def read(filename:str,path:str= 'default'):
+    """ Lee un archivo de radar tipo IRIS.
 
-def preProcess(dBZ):
-    """
-        Función auxiliar para remover los ruidos, ecos y atenuaciones
-    """
-    #Desorden (clutter)
-    desorden = wl.clutter.filter_gabella(dBZ, tr1=12,n_p=6, tr2=1.1)
-    dBZ_ord = wl.ipol.interpolate_polar(dBZ,desorden)
-    #Atenuación
-    pia_kraemer = wl.atten.correct_attenuation_constrained(
-    dBZ_ord,
-    a_max=1.67e-4,
-    a_min=2.33e-5,
-    n_a=100,
-    b_max=0.7,
-    b_min=0.65,
-    n_b=6,
-    gate_length=1.,
-    constraints=[wl.atten.constraint_dbz],
-    constraint_args=[[59.0]])
-    return(dBZ_ord + pia_kraemer)
+    Tiene como entrada la lectura de un archivo existente en el path para después usando las funciones de lectura de archivos IRIS que tienen la libreria wradlib, regresa un objeto radar (o diccionario) que continen toda la información del archivo leido.
 
+    Es recomendable usar antes la función getData(path,basename) y reciclar la varaible path.
+
+    Parameters
+    ----------
+    filenae : str
+        Nombre del archivo que será leido    
+    path : str, optional
+        Ruta donde se encuentren los archivos de no definir una entrada se tomara el directorio de trabajo, by default 'default'
+
+    Outputs
+    -------
+    OrderDict:
+        Un diccionario ordenado que contiene toda la información generada por el radar en un cierto intervalo de tiempo.
+    """    
+    if ( path== 'default' ):
+        path= os.getcwd()
+    #sizeof= os.stat(path+filename).st_size / (1024 * 1024)
+    return wl.io.iris.read_iris(path+filename)
+
+# Debugg functions
+##################
 def writeLog(txt,typ="warning"):
     if typ not in ["debug","info","warning"]:
         raise Exception("KEYEXCEPTION")    
@@ -156,63 +292,3 @@ def writeLog(txt,typ="warning"):
     else:
         logging.warning(txt)
         
-def add_matrix(matrix,data,i=None):
-    """
-        Agrega la matriz del acumulado
-    """
-    if i==1:
-        return(data)
-    else:
-        return(np.append(matrix,data).reshape(i,360,1201))
-        
-def plot_ppi(fig,acum,title,xlabel,ylabel,cmap):
-    
-    ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig)
-    #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
-    pl.xlabel(xlabel)
-    pl.ylabel(ylabel)
-    cb = pl.colorbar(cf, shrink=0.8)
-    cb.set_label("mm")
-    #pl.xlim(-128,128)
-    #pl.ylim(-128,128)
-    pl.grid(color="grey")
-    
-def iris_ver(fcontent):
-    try:
-        fcontent['product_hdr']['product_end']['iris_version_created']
-    except:
-        print("Error")
-    
-def getCoord(fcontent):
-    return(fcontent['product_hdr']['product_end']['latitude'],
-          fcontent['product_hdr']['product_end']['longitude'])
-
-def getElev(fcontent,elev)->bool:
-    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
-    print(fcontent['product_hdr']['product_configuration']['product_name'])
-    if (fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean() <  elev):
-        return(True)
-    else:
-        return(False)
-
-def getRange(fcontent,dist,shape):
-    nbins=(fcontent['product_hdr']['product_end']['number_bins'])
-    gate_0 =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
-    gate_nbin =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
-    gate_size=round((gate_nbin - gate_0)/(nbins))
-    range_rad=gate_0 + gate_size * np.arange(nbins, dtype='float32')
-    print(range_rad[-1],range_rad.shape[0])
-    if (range_rad[-1] == dist) and (range_rad.shape[0] == shape):
-        return(True)
-    else:
-        return(False)
-
-
-
-    
-
-    
-
-
-
-
