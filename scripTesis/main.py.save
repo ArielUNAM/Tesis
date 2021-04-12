@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 #import pandas as pd
 
 #Rutas a directorios
+figp= "/home/arielcg/Documentos/Tesis/imgTesis/"
 qro2015= "/home/arielcg/QRO_2015/"
 qro2016= "/home/amagaldi/QRO_2016/"
 qro2017= "/home/amagaldi/QRO_2017/"
@@ -30,14 +31,21 @@ qro2017= "/home/amagaldi/QRO_2017/"
 
 data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
-#Practica
+#Practica con un archivo
 #Lextura del primer archivo que se enceuntra en el dia 06 del mes 03
-rd= lt.read(data['03']['06'][1],qro2015)
-#dBZ= lt.radarDataProcessingChain(rd)
-dBZ, vel= lt.radarDataProcessingChain(rd)
-Zc= lt.dBZ_to_Zc(dBZ,vel)
-
-fig = plt.figure(figsize=(10,8))
-lt.plot_ppi(fig,Zc,title="No",xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
-###
-plt.show()
+n= len(data['03']['06'])
+acum= None
+for i in range(n):
+    rd= lt.read(data['03']['06'][i],qro2015)
+    #dBZ= lt.radarDataProcessingChain(rd)
+    dBZ, vel= lt.radarDataProcessingChain(rd)
+    Zc= lt.dBZ_to_Zc(dBZ,vel)
+    acum += Zc
+    fig = plt.figure(figsize=(10,8))
+    lt.plot_ppi(fig,Zc,title="No{}".format(i),xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
+    plt.savefig(figp+"{}".format(i))
+    plt.close()
+    print(i)
+fig= plt.figure(figsize=(10,8))
+lt.plot_ppi(fig,acum,title="Acum",xlabel="acum",ylabel="acum",cmap="viridis")
+plt.savegif("acum")

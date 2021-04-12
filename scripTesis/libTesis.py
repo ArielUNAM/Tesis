@@ -121,6 +121,7 @@ def plot_ppi(fig,acum,title,xlabel,ylabel,cmap):
     #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.title(title)
     cb = plt.colorbar(cf, shrink=0.8)
     cb.set_label("mm")
     #plt.xlim(-128,128)
