@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 #from Tesis.scripTesis.libTesis import *
 #import pandas as pd
 
+
 #Rutas a directorios
 figp= "/home/arielcg/Documentos/Tesis/imgTesis/"
 qro2015= "/home/arielcg/QRO_2015/"
