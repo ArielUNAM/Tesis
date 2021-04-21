@@ -49,7 +49,6 @@ def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shap
         raise "File not expected"
     else:
         dBZ= data['data'][1]['sweep_data']['DB_DBZ']['data']
-        vel= data['data'][1]['sweep_data']['DB_VEL']['data']
         if ( not elev ):
             pass
         if ( dist == -1 ):
@@ -74,9 +73,20 @@ def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shap
     gate_length=1.,
     constraints=[wl.atten.constraint_dbz],
     constraint_args=[[59.0]])
-    return(dBZ_ord + pia_kraemer,vel)
+    return(dBZ_ord + pia_kraemer)
+
+def vel2bin(data:OrderedDict, val:float=0.0):
+	"""
+		Transfrorma los valores de velocida a valores 0 y 1
+	"""
+	vel= data['data'][1]['sweep_data']['DB_VEL']['data']
+	#vel[vel == -3.35748031490629819]= val
+	#vel[vel != 0]= 1
     
-def dBZ_to_Zc(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390)->list:
+	return vel
+
+
+def dBZ_to_Zc(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
     """ Converting Reflectivity to Rainfall
 
     Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation

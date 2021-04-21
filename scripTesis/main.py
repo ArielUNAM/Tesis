@@ -29,13 +29,12 @@ qro2017= "/home/amagaldi/QRO_2017/"
 #   m= 14 valores despues del _
 #                  año|mes|dia|hora
 
-
 data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
 #Practica con un archivo
 #Lextura del primer archivo que se enceuntra en el dia 06 del mes 03
 n= len(data['03']['06'])
-acum= None
+acum= 0
 for i in range(n):
     rd= lt.read(data['03']['06'][i],qro2015)
     #dBZ= lt.radarDataProcessingChain(rd)
@@ -44,9 +43,8 @@ for i in range(n):
     acum += Zc
     fig = plt.figure(figsize=(10,8))
     lt.plot_ppi(fig,Zc,title="No{}".format(i),xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
-    plt.savefig(figp+"{}".format(i)+"png")
-    plt.close()
-    print(i)
+    #plt.savefig(figp+"{}".format(i)+"png")
+    #plt.close()
 fig= plt.figure(figsize=(10,8))
 lt.plot_ppi(fig,acum,title="Acum",xlabel="acum",ylabel="acum",cmap="viridis")
 plt.savegif("acum.png")
