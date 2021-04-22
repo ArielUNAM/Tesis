@@ -86,7 +86,7 @@ def vel2bin(data:OrderedDict, val:float=0.0):
 	return vel
 
 
-def dBZ_to_Zc(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
+def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
     """ Converting Reflectivity to Rainfall
 
     Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation

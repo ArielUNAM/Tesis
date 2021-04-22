@@ -41,10 +41,10 @@ for i in tqdm(range(10)):
 	rd= lt.read(data['03']['06'][i],qro2015)
 	vel= lt.vel2bin(rd)
 	dBZ= lt.radarDataProcessingChain(rd)
-	Zc= lt.dBZ_to_Zc(dBZ,vel)
-	acum+= Zc
+	V= lt.dBZ_to_V(dBZ,vel)
+	acum+= V
 	fig= plt.figure(figsize=(10,8))
-	lt.ppi(fig,Zc,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
+	lt.ppi(fig,V,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
 	plt.savefig("Individual {}".format(i))
 	plt.close()
 

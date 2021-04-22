@@ -39,12 +39,12 @@ for i in range(n):
     rd= lt.read(data['03']['06'][i],qro2015)
     #dBZ= lt.radarDataProcessingChain(rd)
     dBZ, vel= lt.radarDataProcessingChain(rd)
-    Zc= lt.dBZ_to_Zc(dBZ,vel)
-    acum += Zc
+    Zc= lt.dBZ_to_V(dBZ,vel)
+    acum += V
     fig = plt.figure(figsize=(10,8))
-    lt.plot_ppi(fig,Zc,title="No{}".format(i),xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
+    lt.ppi(fig,V,title="No{}".format(i),xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
     #plt.savefig(figp+"{}".format(i)+"png")
     #plt.close()
 fig= plt.figure(figsize=(10,8))
-lt.plot_ppi(fig,acum,title="Acum",xlabel="acum",ylabel="acum",cmap="viridis")
+lt.ppi(fig,acum,title="Acum",xlabel="acum",ylabel="acum",cmap="viridis")
 plt.savegif("acum.png")
