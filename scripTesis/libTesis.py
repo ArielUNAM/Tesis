@@ -80,8 +80,8 @@ def vel2bin(data:OrderedDict, val:float=0.0):
 		Transfrorma los valores de velocida a valores 0 y 1
 	"""
 	vel= data['data'][1]['sweep_data']['DB_VEL']['data']
-	#vel[vel == -3.35748031490629819]= val
-	#vel[vel != 0]= 1
+	vel[vel == 0.0]= val
+	vel[vel != 0]= 1
     
 	return vel
 
@@ -125,7 +125,7 @@ def add_matrix(matrix,data,i=None):
     else:
         return(np.append(matrix,data).reshape(i,360,1201))
         
-def plot_ppi(fig,acum,title,xlabel,ylabel,cmap):
+def ppi(fig,acum,title,xlabel,ylabel,cmap):
     
     ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig)
     #ax, cf = wl.vis.plot_ppi(acum,fig=fig)

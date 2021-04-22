@@ -36,13 +36,27 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 #Practica con un archivo
 #Lextura del primer archivo que se enceuntra en el dia 06 del mes 03
 n= len(data['03']['06'])
-for i in tqdm(range(5)):
+acum= 0
+for i in tqdm(range(10)):
 	rd= lt.read(data['03']['06'][i],qro2015)
 	vel= lt.vel2bin(rd)
-	v,c= np.unique(list(vel.data.flat), return_counts=True)
-	print("Valores\n")
-	print(v)
-	print("Contador\n")
-	print(c)
-	print("Moda: ", v[np.argmax(c)])
+	dBZ= lt.radarDataProcessingChain(rd)
+	Zc= lt.dBZ_to_Zc(dBZ,vel)
+	acum+= Zc
+	fig= plt.figure(figsize=(10,8))
+	lt.ppi(fig,Zc,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
+	plt.savefig("Individual {}".format(i))
+	plt.close()
+
+fig= plt.figure(figsize=(10,8))
+lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
+plt.savefig("Acum.png")
+plt.close()
+
+#	v,c= np.unique(list(vel.data.flat), return_counts=True)
+#	print("Valores\n")
+#	print(v)
+#	print("Contador\n")
+#	print(c)
+#	print("Moda: ", v[np.argmax(c)])
 	
