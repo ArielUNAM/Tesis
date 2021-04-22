@@ -110,12 +110,14 @@ def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
     -------
     list
         [description]
+    return(np.multiply(vel,V))
+
     """        
     Z = wl.trafo.idecibel(dBZ)
     R = wl.zr.z_to_r(Z,a=a,b=b)
     V = wl.trafo.r_to_depth(R,intervalos)
-    return(np.multiply(vel,V))
-
+    return V
+    
 def add_matrix(matrix,data,i=None):
     """
         Agrega la matriz del acumulado
