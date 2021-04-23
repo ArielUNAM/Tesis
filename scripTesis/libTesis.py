@@ -86,7 +86,7 @@ def vel2bin(data:OrderedDict, val:float=0.0):
 	return vel
 
 
-def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
+def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
     """ Converting Reflectivity to Rainfall
 
     Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
@@ -112,12 +112,15 @@ def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390):
         [description]
     return(np.multiply(vel,V))
 
-    """        
+    """
     Z = wl.trafo.idecibel(dBZ)
     R = wl.zr.z_to_r(Z,a=a,b=b)
     V = wl.trafo.r_to_depth(R,intervalos)
-    return V
-    
+    if mult:
+        return np.multiply(vel,V)
+    else:
+        return V
+
 def add_matrix(matrix,data,i=None):
     """
         Agrega la matriz del acumulado

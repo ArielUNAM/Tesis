@@ -34,14 +34,14 @@ qro2017= "/home/amagaldi/QRO_2017/"
 data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
 #Practica con un archivo
-#Lextura del primer archivo que se enceuntra en el dia 06 del mes 03
-n= len(data['03']['06'])
+#Segun https://www.youtube.com/watch?v=Va88O9zV_AA llovio el sabado 11 de abril de 2015
+n= len(data['04']['11'])
 acum= 0
-for i in tqdm(range(10)):
-	rd= lt.read(data['03']['06'][i],qro2015)
+for i in tqdm(range(n)):
+	rd= lt.read(data['04']['11'][i],qro2015)
 	vel= lt.vel2bin(rd)
 	dBZ= lt.radarDataProcessingChain(rd)
-	V= lt.dBZ_to_V(dBZ,vel)
+	V= lt.dBZ_to_V(dBZ,vel,mult=False)
 	acum+= V
 	fig= plt.figure(figsize=(10,8))
 	lt.ppi(fig,V,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
