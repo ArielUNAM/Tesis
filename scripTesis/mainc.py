@@ -45,12 +45,12 @@ for i in tqdm(range(n)):
 	acum+= V
 	fig= plt.figure(figsize=(10,8))
 	lt.ppi(fig,V,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
-	plt.savefig(figp+"Individual2_{}".format(i))
+	plt.savefig(figp+"04_11_2015_{}".format(i))
 	plt.close()
 
 fig= plt.figure(figsize=(10,8))
 lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
-plt.savefig(figp+"Acum2.png")
+plt.savefig(figp+"04_11_2015_acum.png")
 plt.close()
 
 #	v,c= np.unique(list(vel.data.flat), return_counts=True)
