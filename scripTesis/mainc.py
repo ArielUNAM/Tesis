@@ -41,16 +41,16 @@ for i in tqdm(range(n)):
 	rd= lt.read(data['04']['11'][i],qro2015)
 	vel= lt.vel2bin(rd)
 	dBZ= lt.radarDataProcessingChain(rd)
-	V= lt.dBZ_to_V(dBZ,vel,mult=False)
+	V= lt.dBZ_to_V(dBZ,vel)
 	acum+= V
 	fig= plt.figure(figsize=(10,8))
 	lt.ppi(fig,V,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
-	plt.savefig(figp+"04_11_2015_{}".format(i))
+	plt.savefig(figp+"04_11_2015_2_{}".format(i))
 	plt.close()
 
 fig= plt.figure(figsize=(10,8))
 lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
-plt.savefig(figp+"04_11_2015_acum.png")
+plt.savefig(figp+"04_11_2015_2_acum.png")
 plt.close()
 
 #	v,c= np.unique(list(vel.data.flat), return_counts=True)
