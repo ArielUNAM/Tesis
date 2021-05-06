@@ -152,8 +152,9 @@ def getCoord(fcontent):
           fcontent['product_hdr']['product_end']['longitude'])
 
 def getElev(fcontent,elev)->bool:
-    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
     print(fcontent['product_hdr']['product_configuration']['product_name'])
+    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
+    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_stop'].mean())
     if (fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean() <  elev):
         return(True)
     else:

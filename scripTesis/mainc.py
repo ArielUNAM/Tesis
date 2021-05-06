@@ -35,23 +35,30 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
 #Practica con un archivo
 #Segun https://www.youtube.com/watch?v=Va88O9zV_AA llovio el sabado 11 de abril de 2015
-n= len(data['04']['11'])
-acum= 0
-for i in tqdm(range(n)):
-	rd= lt.read(data['04']['11'][i],qro2015)
-	vel= lt.vel2bin(rd)
-	dBZ= lt.radarDataProcessingChain(rd)
-	V= lt.dBZ_to_V(dBZ,vel)
-	acum+= V
-	fig= plt.figure(figsize=(10,8))
-	lt.ppi(fig,V,title='No {}'.format(i),xlabel="x",ylabel="y",cmap="viridis")
-	plt.savefig(figp+"04_11_2015_2_{}".format(i))
-	plt.close()
-
-fig= plt.figure(figsize=(10,8))
-lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
-plt.savefig(figp+"04_11_2015_2_acum.png")
-plt.close()
+#Acumulación para los meses 7 y 8
+meses= ['07','08']
+elev= 1
+for mes in meses:
+    acumm= 0
+    for dia in list(data[mes].keys()):
+        #n= len(data[mes][dia])
+        n= 40
+        acumd= 0
+        for i in range(n):#tqdm(range(n)):
+            rd= lt.read(data[mes][dia][i],qro2015)
+            if (lt.getElev(rd, elev)):
+                vel= lt.vel2bin(rd)
+                dBZ= lt.radarDataProcessingChain(rd)
+                V= lt.dBZ_to_V(dBZ,vel,a=74,b=1.6)
+                acumd+= V
+            #np.ma.acumd(values,mask)(?)
+            #np.save('file',a.compressed())
+            np.savez_compressed("data_{}_{}.npz".format(mes,dia),data=acumd.data,mask=acumd.mask)
+    np.savez_compressed("data_{}.npz".format(mes),data=acumm.data,mask=acumm.mask)
+    # fig= plt.figure(figsize=(10,8))
+    # lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
+    # plt.savefig(figp+mes+"_2015_acum.png")
+    # plt.close()
 
 #	v,c= np.unique(list(vel.data.flat), return_counts=True)
 #	print("Valores\n")
@@ -59,4 +66,3 @@ plt.close()
 #	print("Contador\n")
 #	print(c)
 #	print("Moda: ", v[np.argmax(c)])
-	
