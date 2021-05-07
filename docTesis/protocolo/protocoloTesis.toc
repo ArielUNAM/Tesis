@@ -1,0 +1,25 @@
+\babel@toc {spanish}{}
+\contentsline {chapter}{Introducción}{\es@scroman {i}}{}%
+\contentsline {section}{\numberline {0.1}Hipótesis}{\es@scroman {i}}{}%
+\contentsline {section}{\numberline {0.2}Objetivos}{\es@scroman {i}}{}%
+\contentsline {subsection}{\numberline {0.2.1}Particulares}{\es@scroman {i}}{}%
+\contentsline {section}{\numberline {0.3}Justificación}{\es@scroman {ii}}{}%
+\contentsline {chapter}{\numberline {1}Antecedentes}{1}{}%
+\contentsline {chapter}{\numberline {2}El agua y su consumo}{2}{}%
+\contentsline {section}{\numberline {2.1}El agua en Querétaro}{2}{}%
+\contentsline {subsection}{\numberline {2.1.1}Tipos de consumidores}{2}{}%
+\contentsline {subsection}{\numberline {2.1.2}Crisis}{2}{}%
+\contentsline {section}{\numberline {2.2}Alternativas en el consumo}{2}{}%
+\contentsline {chapter}{\numberline {3}Precipitación Pluvial}{3}{}%
+\contentsline {section}{\numberline {3.1}Proceso de precipitación}{3}{}%
+\contentsline {subsection}{\numberline {3.1.1}Nubes}{3}{}%
+\contentsline {subsection}{\numberline {3.1.2}Precipitación}{3}{}%
+\contentsline {section}{\numberline {3.2}Métodos de medición}{4}{}%
+\contentsline {subsection}{\numberline {3.2.1}Pluviómetros}{4}{}%
+\contentsline {subsection}{\numberline {3.2.2}Medidores de precipitación registradores}{4}{}%
+\contentsline {chapter}{\numberline {4}Radar Meterorológico}{5}{}%
+\contentsline {section}{\numberline {4.1}Funcionamiento}{5}{}%
+\contentsline {section}{\numberline {4.2}Aplicación en la meteorología}{5}{}%
+\contentsline {chapter}{\numberline {5}Python}{6}{}%
+\contentsline {section}{\numberline {5.1}Uso en la meteorología}{6}{}%
+\contentsline {chapter}{\numberline {6}Metodología}{7}{}%

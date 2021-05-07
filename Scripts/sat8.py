@@ -6,9 +6,6 @@ Created on Thu Nov 16 23:01:38 2017
 @author: amagaldi
 """
 
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-
 import glob
 import os
 import wradlib as wrl
@@ -39,6 +36,8 @@ d2 = date(2016, 6, 2)  # end date
 
 delta = d2 - d1         # timedelta
 
+
+##Realiza una lectura por día
 for i in range(delta.days + 1):
     dat=d1 + timedelta(days=i)
     ase="CAT16"+'%02d'%dat.month+'%02d'%dat.day+"*"
@@ -49,7 +48,7 @@ for i in range(delta.days + 1):
     print len(allFiles)
 
     i=0
-
+    #Cada día hay un conjunto de archivos, leemos cada archivo del día
     for filename in allFiles:
         f = wrl.util.get_wradlib_data_file(filename)
         fcontent = wrl.io.read_iris(f)
@@ -67,7 +66,7 @@ for i in range(delta.days + 1):
             range_radc_bien=range_rad
             print filename
             print(fcontent['product_hdr']['product_configuration']['product_name'])
-            d= fcontent['data'][1]['sweep_data']['DB_DBZ']['data']
+            d = fcontent['data'][1]['sweep_data']['DB_DBZ']['data']
             b = fcontent['data'][1]['sweep_data']['DB_VEL']['data']
             b[b == -3.357480314960629819] = 0   #-9999.0 no_data
             b[b != 0] = 1
@@ -97,3 +96,5 @@ for i in range(delta.days + 1):
 
         
     print "fin"
+    
+    
