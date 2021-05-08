@@ -51,7 +51,7 @@
 %    e) Metodología a emplear, y
 %    f) Bibliografía básica (mínimo 10 referencias)
 %###################################
-
+\usepackage{float}
 \newcommand{\figura}[4]
 {
   \begin{figure}[H]
@@ -213,9 +213,22 @@
 \chapter{El agua y su consumo}
     El problema de agua no es local ni se limita a una cierta región o país. El problema es global sin embargo, se presenta de forma más visible en cimunidades marginadas o paises menos desarrollados. Dentro de las causas más destacables se encuentra el crecimiento demográfico, la poca disponibilidad de agua dulce y su constante contaminación por actividades humanas.
     \section{El agua en Querétaro}
+        \subsection{hidrología}
+            El estado de Querétaro de Arteaga se localza en la zona centro de la República Mexicana, con una poblacón de aproximada de 2 millones de habitantes. El estado se divide en 18 municipios, destacando a Querétaro por ser el municipio más urbanizado, siguiendo San Juan del Rio y Corregidora.
+            Querétaro se encuentra ubicado entre dos regiones hidrológicas: Lerma-Santiago y Pánuco. Los ríos Ayutla y Jalpan son afluentes del río Santa María y e encuentran al norte del estado, en la región de la Sierra Gorda Queretana, éstos concentral la moyor disponibilidad de agua superficial.
+        \subsection{Clima}
+            El $51\%$ de la superficie del estado de Querétaro tiene clima seco y semiseco. El clima cálido subhúmedo se presenta en $24.3\%$ de la superficie, en la región de la Sierra Madre Oriental; mientras que el $23\%$ de la superficie tiene clima templado subhúmedo y se localiza en la región sur, centro y noreste; $1\%$ presenta clima cálido húmedo hacia el noresta y el restante presenta clima templado húmedo al nereste del estado.
+            Los climas se hallan condiciados a factores geográficos, principalmente diferentes altitudes y el papel de berrera orográfica que juega la Sierra Madre Oriental, que no permiete le paso de vientos húmedos del golfo a la vertiente interior de dicha sierra. lo que origina climas secos y semisecos en el centro de la entidad.
         \subsection{Tipos de consumidores}
+            Querétaro es un estado industrialmente activo, en él se encuentran empresas automotrices, aeronauticas y diferentes empresas manufactureras; aportando el $1.9\%$ del PIB (Producto Interno Bruto) del país en 2009. 
+            Además de la industria, el estado cuenta con servicios de turismo, agricultura, ganaderia, servicios inmobiliarios, los cuales también aportan capital al estado.
+            Por último, el estado ha presentado un crecimiento exponensial en su población causado por la migración de personas que buscan un empleo o una mejor calidad de vida, probocado a su vez que se cambien los usos de suelo para la construcción de viviendas, centros comerciales y otros servicios públicos y provados como hospitales, escuelas y caminos.
         \subsection{Crisis}
-    \section{Alternativas en el consumo}
+            En Querétaro existen ya diferentes problemas con respecto al agua, uno de los cuales es por la falta de calidad en el agua, haciendo que enfermedades diarreicas causadas por la mala calidad del agua represente una de las principales causas de atención médica en la entidad.
+            Además de ello, la mayor fuente de agua en el estado es del tipo subterranea, lo que ocaciona que en ella se presente diferentes contaminantes como sales arsenicales, flour, nitratos o solidos disueltos. Además, en Peñamiller existe el problema de contaminación por manganeso.
+            
+            El estado cuenta con 273 fuentes de bastecimeinto, entre pozos, manantiales, presas y otros que producen anualmente $104,04 mm^3$, de los cuales la gran mayoria se utilizan para abastecer la zona metopolitana. 
+            Los recursos subterráneos representan el $70\%$ del agua utilizada en el estado, sin embargo esta fuente se encuentra en sobreexplotación y las formas naturales de recarga están siendo eliminadas (por cambios en el uso de suelos), lo que ocaciona que las recargas sean insuficientes, ya que se realiza una extracción promedio de $103 mm^3$ y hay una recarga solo de $70 mm^3$, generando un déficit de $33\%$
 
 \chapter{Precipitación Pluvial} 
     La atmósfera es un fluido complejo donde ocurren diferentes procesos. La suma de todos estos procesos es lo que conocemos coo tiempo atmosférico. Uno de los procesos que se desarrollan en la atmósfera es la precipitación pluvial, la cual se entiende como la caida del agua desde la atmósfera hacia la superficie terrestre.
@@ -251,7 +264,10 @@
         Librerias de acceso público como \textbf{pyart} y \textbf{wradlib} facilitan este proceso al integrar diferentes algoritmos de decodificación para algunas marcas de radar, haciendo que su uso se vea limitado unicamente a las codificaciones que maneja.
 
 \chapter{Metodología}
-    \figura{1}{/home/aceron/Documentos/GitHub/Tesis/docTesis/metodo.png}{Diagrama de proceso}{fig:fig1}
+    \figura{0.5}{/home/aceron/Documentos/GitHub/Tesis/docTesis/metodo.png}{Diagrama de proceso}{fig:fig1}
+    
+    Se pretende obtener la mayor cantidad de información pública en el cosumo de agua ocurrida en el estado y a su vez la mayor cantidad de datos generados por el radar (o al menos la misma cantidad de datos obtenidos de forma pública), paso seguido se hará un procesamiento de la información par obtener información útil de los datos crudos obtenidos. Habiendo hecho la extracción se procesederá a hacer un estudi estadistico y comparativo entre la cantidad precipitada y la cantidad utilizada, con esta información intentaremos validar un sistema de almacenamiento considerando un área de recolección promedio que tengan las diferentes viviendas, zonas industriales y ganaderas.
+
     
 %\chapter{Conclusiones}  
 \nocite{*}
