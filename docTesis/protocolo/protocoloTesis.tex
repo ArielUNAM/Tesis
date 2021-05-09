@@ -81,7 +81,7 @@
 \usepackage{tocloft}
 \graphicspath{{./figs/}}
 \usepackage{setspace}
-
+\usepackage[nottoc]{tocbibind}
 %\usepackage[round]{natbib}
 
 \renewcommand\cftsecpresnum{\S}
@@ -129,13 +129,14 @@
             \begin{center}
                 \vspace{1cm}
 
-                {\large\scshape Estudio de la precipitación pluvial en el estado de Querétaro usando datos del radar meteorológico ubicado en el Cerro de la Ronchera, Querétaro, en el periodo 2014-2019 para mostrar la viabilidad de los sistemas de almacenamiento de precipitación pluvial en la zona.}\\[.2in]
+                {\large\scshape (Título tentativo) Estudio de la viabilidad de sistemas de recolección de agua de lluvia en el Estado de Querétaro usando datos del radar meteorológico ubicado en el Cerro de la Ronchera}\\[.2in]
 
                 \vspace{2cm}            
 
-                \textsc{\LARGE T\hspace{1.5cm}E\hspace{1.5cm}S\hspace{1.5cm}I\hspace{1.5cm}S}\\[0.5cm]
-                \textsc{\large que para obtener el t\'itulo de:}\\[0.5cm]
-                \textsc{\large Licenciado en Tecnología}\\[0.5cm]
+                %\textsc{\LARGE T\hspace{1.5cm}E\hspace{1.5cm}S\hspace{1.5cm}I\hspace{1.5cm}S}\\[0.5cm]
+                %\textsc{\large que para obtener el t\'itulo de:}\\[0.5cm]
+                %\textsc{\large Licenciado en Tecnología}\\[0.5cm]
+                \textsc{\large Protocolo de Tesis}\\[0.5cm]
                 \textsc{\large presenta:}\\[0.5cm]
                 \textsc{\large {Ariel Cerón González}}\\[2cm]          
 
@@ -167,15 +168,14 @@
 %\chapter{Notación}
 
 \chapter{Introducción}
-    En México, el manejo de los recursos hídircos es uno de los grandes temas de interes para diferentes sectores por el beneficio económico que genera. 
-    Actualmente México enfrenta varias problemática sobre el recurso entre las que se encuentran el acceso al recurso para diferentes sectores de la población, la falta de lluvias originado por la tala inmoderada de bosques y selvas, sobre consesiones del recurso\cite{jornada:agua}, privilegios a clases sociales y falta de matenimiento a las instalaciones.
+    En México, el manejo de los recursos hídircos es uno de los grandes temas de interes para diferentes sectores plitico-industriales, por el beneficio económico que genera. 
 
-    Aunque en los últimos años se ha reconocido la importancia de cuidar y administrar el recurso \cite{de2019objetivo} \cite{mex:procaptar} son pocas las nuevas tecnologías o métodos que se han desarrollado para la solución del problema. 
+    Actualmente México enfrenta varias problemática sobre el recurso entre las que se encuentran el acceso al recurso, mala calidad en el suministro, la falta de lluvias originado por la tala inmoderada de bosques y selvas, sobre consesiones del recurso\cite{jornada:agua}, y falta de matenimiento a la infraestrucutra existente.
 
-    Una de las soluciones que más destaca es la de la captación del agua de lluvia \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} sin embargo las soluciones no consideran aspectos meteorológicos para su aplicación, sino que se realizan mediciones \textit{in situ} para validar la eficiencia del sistema.
+    Aunque en los últimos años se ha reconocido la importancia de cuidar y administrar el recurso \cite{de2019objetivo} \cite{mex:procaptar} son pocas las nuevas tecnologías o métodos que se han desarrollado para la solución del problema. Una de las soluciones que más destaca es la de la captación del agua de lluvia \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} sin embargo las soluciones no consideran aspectos meteorológicos para su aplicación, sino que se realizan mediciones \textit{in situ} para validar la eficiencia del sistema.
 
-    El aprovechamiento de tecnologías meteorológicas, como el radar, podrían dotar de más información que permita validar la eficiencia de sistemas, como el de capatación, sin la necesidad de realizar una instalación, ahorrando costos en la implementación del sistema o, por otro lado, eficientizandolos.
-
+    El aprovechamiento de tecnologías meteorológicas, como el radar, podrían dotar de más información que permita validar la eficiencia de sistemas, como el de capatación, sin la necesidad de realizar una instalación, ahorrando costos en la implementación del sistema o, por otro lado, eficientizandolos, además los resultados pueden ser considerados para la implementación de mejores politicas de gestión pública del recurso.
+\newpage
     \section{Hipótesis}
         Los registros históricos del radar meteorológico pueden proveer información sobre la densidad de precipitación pluvial y las zonas geográficas donde se condensa más este fenómeno. El correcto uso de los datos permitirá observar la evolución de la precipitación y la capacidad que tiene el estado para su aprovechamiento.
 
@@ -191,15 +191,8 @@
         El estado de Querétaro ha presentado un crecimiento poblacional acelerado en los últimos años de su historio, lo que trae consigo mayor demanda de recursos básicos, entre los que destaca el acceso al agua. 
         El acceso al agua se ha visto comprometido de mayor forma en los últimos años y con ello la necesidad de contar con alternativas que permitan a la población contar con acceso al recurso. Uno de los métodos más populares es el de la cosecha de lluvia. Sin embargo la geografía del estado plantea una poblemática al momente de implementar esta solución.
         Al conocer las necesidades hídircas de la población, así como la capacidad puntual de precipitació facilitaría la implementación de tecnologías y políticas que permitan generar una mayor resilencia en el recurso.
-
-
-\tableofcontents
-%\listoffigures
-
-    
-\mainmatter
-
-\chapter{Antecedentes} 
+\newpage
+\chapter*{Antecedentes} 
     El estado de Querétaro ha desarrollado problemas en relación con los recursos hídricos necesarios para satisfacer a la población, la industria y la agricultura. La disponibilidad del agua es la principal limitante del bienestar económico y social a largo plazo en la ciudad, pues el agua debe ser de una calidad acpetable, en cantidad adecuada y continua y a un precio razonable. Para confrontar las prioridades existentes relacionadas con el uso sosteneible de los recursos hídircos es necesario aprovechar todas las oportunidades existentes para la optimización de sus suministro, consumo y conservación.
 
     El hecho de que el abastecimiento del agua potable de la zona metropolitana de la ciudad de Querétaro (ZMCQ) provenga principalmente de un acuífero subterráneo sobreexplotado -Acuifero del Valle de Querétaro- representa un riesgo considerable para el gobierno y la sociedad, haciendo inevitable desarrollar estrategias y acciones específicas para garantizar el abasto de agua a largo plazo.
@@ -207,68 +200,60 @@
     Para lograr el abasto de agua es necesario generar la sustentabilidad\footnote{El desarrollo equitativo que cumple las necesidades del presente sin comprometer la habilidad de las generaciones futuras para cumplir sus propias necesidades} pasando por la conservación de sus fuentes, la lluvia, acuíferos, lagos, rios y bosques. Para el uso sustentable del agua se debe hacer una planeación completa fomentando el ahorro del recurso y aprovechar al máximo, sin sobreexplotar, las fuentes locales.
 
     Un método popular de aprovechamiento es el de la captación de agua de lluvia, llevando a desarrollar tesis \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} y guías técnicas para su instalación \cite{queralt2011agua} \cite{unatsabar2004guia}. En todas ellas se puede observar una base constante: un área de captación, un sistema de transporte y un lugar de almacenamiento. Variando uno a otro en técnologías extra como filtración, eliminación de bacterias, usuarios finales o materiales.
-
-%Introudcción, antecedentes 
-
-\chapter{El agua y su consumo}
-    El problema de agua no es local ni se limita a una cierta región o país. El problema es global sin embargo, se presenta de forma más visible en cimunidades marginadas o paises menos desarrollados. Dentro de las causas más destacables se encuentra el crecimiento demográfico, la poca disponibilidad de agua dulce y su constante contaminación por actividades humanas.
-    \section{El agua en Querétaro}
-        \subsection{hidrología}
-            El estado de Querétaro de Arteaga se localza en la zona centro de la República Mexicana, con una poblacón de aproximada de 2 millones de habitantes. El estado se divide en 18 municipios, destacando a Querétaro por ser el municipio más urbanizado, siguiendo San Juan del Rio y Corregidora.
-            Querétaro se encuentra ubicado entre dos regiones hidrológicas: Lerma-Santiago y Pánuco. Los ríos Ayutla y Jalpan son afluentes del río Santa María y e encuentran al norte del estado, en la región de la Sierra Gorda Queretana, éstos concentral la moyor disponibilidad de agua superficial.
-        \subsection{Clima}
-            El $51\%$ de la superficie del estado de Querétaro tiene clima seco y semiseco. El clima cálido subhúmedo se presenta en $24.3\%$ de la superficie, en la región de la Sierra Madre Oriental; mientras que el $23\%$ de la superficie tiene clima templado subhúmedo y se localiza en la región sur, centro y noreste; $1\%$ presenta clima cálido húmedo hacia el noresta y el restante presenta clima templado húmedo al nereste del estado.
-            Los climas se hallan condiciados a factores geográficos, principalmente diferentes altitudes y el papel de berrera orográfica que juega la Sierra Madre Oriental, que no permiete le paso de vientos húmedos del golfo a la vertiente interior de dicha sierra. lo que origina climas secos y semisecos en el centro de la entidad.
-        \subsection{Tipos de consumidores}
-            Querétaro es un estado industrialmente activo, en él se encuentran empresas automotrices, aeronauticas y diferentes empresas manufactureras; aportando el $1.9\%$ del PIB (Producto Interno Bruto) del país en 2009. 
-            Además de la industria, el estado cuenta con servicios de turismo, agricultura, ganaderia, servicios inmobiliarios, los cuales también aportan capital al estado.
-            Por último, el estado ha presentado un crecimiento exponensial en su población causado por la migración de personas que buscan un empleo o una mejor calidad de vida, probocado a su vez que se cambien los usos de suelo para la construcción de viviendas, centros comerciales y otros servicios públicos y provados como hospitales, escuelas y caminos.
-        \subsection{Crisis}
-            En Querétaro existen ya diferentes problemas con respecto al agua, uno de los cuales es por la falta de calidad en el agua, haciendo que enfermedades diarreicas causadas por la mala calidad del agua represente una de las principales causas de atención médica en la entidad.
-            Además de ello, la mayor fuente de agua en el estado es del tipo subterranea, lo que ocaciona que en ella se presente diferentes contaminantes como sales arsenicales, flour, nitratos o solidos disueltos. Además, en Peñamiller existe el problema de contaminación por manganeso.
-            
-            El estado cuenta con 273 fuentes de bastecimeinto, entre pozos, manantiales, presas y otros que producen anualmente $104,04 mm^3$, de los cuales la gran mayoria se utilizan para abastecer la zona metopolitana. 
-            Los recursos subterráneos representan el $70\%$ del agua utilizada en el estado, sin embargo esta fuente se encuentra en sobreexplotación y las formas naturales de recarga están siendo eliminadas (por cambios en el uso de suelos), lo que ocaciona que las recargas sean insuficientes, ya que se realiza una extracción promedio de $103 mm^3$ y hay una recarga solo de $70 mm^3$, generando un déficit de $33\%$
-
-\chapter{Precipitación Pluvial} 
-    La atmósfera es un fluido complejo donde ocurren diferentes procesos. La suma de todos estos procesos es lo que conocemos coo tiempo atmosférico. Uno de los procesos que se desarrollan en la atmósfera es la precipitación pluvial, la cual se entiende como la caida del agua desde la atmósfera hacia la superficie terrestre.
-
-    \section{Proceso de precipitación}
-        El proceso de precipitación se puede relacionar con el ciclo del agua, sin embargo difiere de este al no considerar todas las etapas y enfocarse únicamente en la condensación y precipitación.
-        \subsection{Nubes}
-            Las nubes son cumulos inmesos de partículas \textit{suspendidas}\footnote{La velocidad en la caída de estas gotas es tan baja que parecen estar suspendidas} en la atmósfera, se forman cuando el aire se encuentra \textbf{saturado}. La saturación puede ocurrir por adición de gotas de agua, cristales de hielo, polvo o una mezcla de estos. 
-            Cuando estas partículas se encuentran suspendidas en la atmosfera adquieren el nombre de \textbf{hidrometeoros}.
-        \subsection{Precipitación}
-            Los hidrometeoros se encuentran en constante movimiento en la atmosfera, generando colociones entre ellos que provocan el incremento en su tamaño. Los hidrometeoros tienen una variación en su tamaño que va desde los $2\mu m$ hasta los $2500 \mu m$. El aumento en el tamaño de los hidrometeoros genera un cambio en el peso de estos, haciendo que caigan hacia la superficie terrestre. Cuando esto le ocurre a una gran cantidad de hidrometeoros ocurre el fenómeno conocido como precipitación.
-    \section{Métodos de medición}
-        El volumen totoal de las precipitacciones que llegan a la superficie durante un período determinado se expresa en función del nivel que alcanzariían sobre una proyección horizontal de la superficie. La unidad de precipitación es la profundiad lineal, normalmente en milímetros. Los periódos comunies de observación son cada hora, cada tres horas y a diario, aunque en algunos casos se requiere una resolución temporal mucho mayor para medir intensidades de llvia muy elevadas.
-        \subsection{Pluviómetros}
-            Uno de los intrumentos de medición más utilizado es el pluviometro. El pluviometro es un recipiente abierto de lados vericales, en forma de cilindro recto, y con un embudo, cuya principal función es medir la lluvia puntual ocurrida en un periodo de tiempo determindado.
-        \subsection{Medidores de precipitación registradores}
-            Son aparatos que usan diferentes técnicas como el de pesaje, el cual registra el peso de la precipitación acumulada en un depósito, el de cubeta basculante, cuyo funcionamiento se basa en registrar el tiempo que tarda una cubeta en cambiar su inclinación esto en función de la precipitación ocurrida y el de flotador o pluviógrafo, en el cual la lluvia pasa a un recipiente que contiene un flotador y a medida qie el nivel del agua aumenta, el movimiento del flotador se transmite a un dispositivo que registra este cambio.
-
-\chapter{Radar Meterorológico}
-    El uso de radares en la meteorología tiene una gran historia desde su implementación, sin embargo el uso para aplicaciones hidrológicas es relativamente nuevo.
-    \section{Funcionamiento}
-        Un radar meteorológico es un emisor y receptor de pulsos electromagnéticos de duración $\tau$ y longitud de onda $\lambda$. 
-        Cuando la energía emitida es interceptada por un \textit{blanco}, esta es dispersada en todas direcciones, de forma que una fracción de la energía es devuelta en dirección del radar y captada por el receptor. 
-    \section{Aplicación en la meteorología}
-        La medición de la energía electromagnética devuelta por una gota de lluvia está directamente relacionada con una cantdad física denomindad \textit{reflectivilidad} ($Z$) cuyas unidades son $mm^6/m^3$, a partir de esta unidad se puede conocer un estimado de la acumulación de la precipitación ($mm$) usando una relación conocida como $Z-R$ cuya ecuación esta dada en terminos de una ley de potencia del tipo $Z= aR^b$, con $a,b$ constantes determindas por factores como la ubicación y el tamaño de la gota. Usualmente se usan los parámtros empiricos de Marshall-Palmer tomando $a=200$ y $b=1.6$.
-
-\chapter{Python}
-    Python es un lenguaje de programación multiparadigma con estado OpenSource, lo cual ha promovido su uso de forma extensa en una basta cantidad de proyectos de todo tipo, entre los que destacan: desarrollo web, inteligencia artificial, estadística, modelos dinámicos  y aplicaciones de escritorio.
-    Python es una excelente herramienta para el manejo y visualización de grandes cantidades de datos, además de que su aprendizaje es muy simple en compración de otros lenguajes existentes. 
-    \section{Uso en la meteorología}
-        Los radares meteorológicos usualmente empaquetan una gran cantidad de información como la ubicación, el tiempo en el que se muestreado, la cantidad de pulsos realizados, la inclinación del radar y todas y cada una de las mediciones. 
-        Además de ello las diferentes empresas dedicadas a la fabricación de radares meteorológicos usan una codificación diferente para almacenar estos datos, haciendo que la utilización de los datos se vea afectada por no contar con los métodos de decoficiación necesarios. 
-        Librerias de acceso público como \textbf{pyart} y \textbf{wradlib} facilitan este proceso al integrar diferentes algoritmos de decodificación para algunas marcas de radar, haciendo que su uso se vea limitado unicamente a las codificaciones que maneja.
-
-\chapter{Metodología}
-    \figura{0.5}{/home/aceron/Documentos/GitHub/Tesis/docTesis/metodo.png}{Diagrama de proceso}{fig:fig1}
+\chapter*{Metodología}
+    \cite{omm2014guia} define diferentes mecanísmos para la medició de la precipitación. Nosotros usaremos la información generada por un radar meteorológico de efecto dopler y aplicaremos la relación $Z-R$ \ref{eq:eq1} para obtener la precipitación acumulada en diferentes periodos de tiempo.
+    \begin{equation}
+        Z= aR^b
+        \label{eq:eq1}
+    \end{equation}
+    El número de datos almacenados varía en función del tiempo que tarda en generar un mapeo\footnote{Un radar emite un pulso en un cierto ángulo de inclinación (azimuth) y en un cierto ángulo de rotación. Cuando se termina una ratoción el ángulo de inclinación se modifica y, cuando se llega a la inclinación máxima se reinicia el proceso de mapeo.}, normalmente la frecuencia de adquisión de datos para un mismo punto varia entre los 10 y 20 minutos, haciendo necesario un procesamiento de transformación y acumulación para conocer la precipitación en espacios temporales mayores. Para ello se usará una ecuaión de la forma \ref{eq:eq2}, con $n$ la cantidad de datos y $Z_i$ el valor de precipitación acumulada para el dato $i$
+    \begin{equation}
+        S= \sum^n Z_i
+        \label{eq:eq2}
+    \end{equation}
     
-    Se pretende obtener la mayor cantidad de información pública en el cosumo de agua ocurrida en el estado y a su vez la mayor cantidad de datos generados por el radar (o al menos la misma cantidad de datos obtenidos de forma pública), paso seguido se hará un procesamiento de la información par obtener información útil de los datos crudos obtenidos. Habiendo hecho la extracción se procesederá a hacer un estudi estadistico y comparativo entre la cantidad precipitada y la cantidad utilizada, con esta información intentaremos validar un sistema de almacenamiento considerando un área de recolección promedio que tengan las diferentes viviendas, zonas industriales y ganaderas.
+    Los datos de consumo serán solicitados a la Comisión Estatal de Aguas de Querétaro (CEA); se espera conocer con estos datos la necesidad hídrica de la población y con esto generar descriptores de consumo, para cada uno de los sectores que define la CEA, que serán de ayuda al momento de validar los sistemas.
 
-    
+    Una vez generada la información de precipitación se construiran mapas hidrícos en diferentes periodos estacionales que describan la capacidad de precipitación en cada zona que mapea el radar. Con ello se pretende conocer si la precipitación de cada zona cubre a los descriptores generados con anterioridad.
+    %\figura{0.5}{/home/aceron/Documentos/GitHub/Tesis/docTesis/metodo.png}{Diagrama de proceso}{fig:fig1}
+\newpage
+\tableofcontents
+%\listoffigures
+
+\mainmatter
+
+\chapter{Antecedentes.} 
+\chapter{El agua y su consumo.}
+    \section{El agua en Querétaro.}
+        \subsection{Hidrología.}
+        \subsection{Clima.}
+        \subsection{Consumidores.}
+        \subsection{Crisis.}
+\chapter{Precipitación Pluvial.} 
+    \section{Proceso de precipitación.}
+        \subsection{Nubes.}
+        \subsection{Precipitación.}
+    \section{Métodos de medición.}
+        \subsection{Pluviómetros.}
+        \subsection{Medidores de precipitación registradores.}
+\chapter{Radar Meterorológico.}
+    \section{Funcionamiento.}
+    \section{Aplicación en la meteorología.}
+\chapter{Metodología.}
+    \section{Adquisición de datos.}
+    \section{Procesamiento de la información.}
+    \section{Estadística descriptiva.}
+    \section{Validación de los resultados}
+        \subsection{Creación de una medida de consumo.}
+        \subsection{Creación de áreas de recolección.}
+\chapter{Resultados.}
+    \section{Datos meteorológicos.}
+        \subsection{Mapas estacionales.}
+    \section{Datos de consumo.}
+        \subsection{Evolución temporal.}
+    \section{Comparación entre el consumo y lo recolectado.}
+\chapter{Conclusiones.}
+
 %\chapter{Conclusiones}  
 \nocite{*}
 \bibliographystyle{apalike}
