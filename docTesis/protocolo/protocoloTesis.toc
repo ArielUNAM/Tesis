@@ -1,0 +1,38 @@
+\babel@toc {spanish}{}
+\contentsline {chapter}{Introducción}{\es@scroman {i}}{}%
+\contentsline {section}{\numberline {0.1}Hipótesis}{\es@scroman {ii}}{}%
+\contentsline {section}{\numberline {0.2}Objetivos}{\es@scroman {ii}}{}%
+\contentsline {subsection}{\numberline {0.2.1}Particulares}{\es@scroman {ii}}{}%
+\contentsline {section}{\numberline {0.3}Justificación}{\es@scroman {ii}}{}%
+\contentsline {chapter}{\numberline {1}Antecedentes.}{1}{}%
+\contentsline {chapter}{\numberline {2}El agua y su consumo.}{2}{}%
+\contentsline {section}{\numberline {2.1}El agua en Querétaro.}{2}{}%
+\contentsline {subsection}{\numberline {2.1.1}Hidrología.}{2}{}%
+\contentsline {subsection}{\numberline {2.1.2}Clima.}{2}{}%
+\contentsline {subsection}{\numberline {2.1.3}Consumidores.}{2}{}%
+\contentsline {subsection}{\numberline {2.1.4}Crisis.}{2}{}%
+\contentsline {chapter}{\numberline {3}Precipitación Pluvial.}{3}{}%
+\contentsline {section}{\numberline {3.1}Proceso de precipitación.}{3}{}%
+\contentsline {subsection}{\numberline {3.1.1}Nubes.}{3}{}%
+\contentsline {subsection}{\numberline {3.1.2}Precipitación.}{3}{}%
+\contentsline {section}{\numberline {3.2}Métodos de medición.}{3}{}%
+\contentsline {subsection}{\numberline {3.2.1}Pluviómetros.}{3}{}%
+\contentsline {subsection}{\numberline {3.2.2}Medidores de precipitación registradores.}{3}{}%
+\contentsline {chapter}{\numberline {4}Radar Meteorológico.}{4}{}%
+\contentsline {section}{\numberline {4.1}Funcionamiento.}{4}{}%
+\contentsline {section}{\numberline {4.2}Aplicación en la meteorología.}{4}{}%
+\contentsline {chapter}{\numberline {5}Metodología.}{5}{}%
+\contentsline {section}{\numberline {5.1}Adquisición de datos.}{5}{}%
+\contentsline {section}{\numberline {5.2}Procesamiento de la información.}{5}{}%
+\contentsline {section}{\numberline {5.3}Estadística descriptiva.}{5}{}%
+\contentsline {section}{\numberline {5.4}Validación de los resultados}{5}{}%
+\contentsline {subsection}{\numberline {5.4.1}Creación de una medida de consumo.}{5}{}%
+\contentsline {subsection}{\numberline {5.4.2}Creación de áreas de recolección.}{5}{}%
+\contentsline {chapter}{\numberline {6}Resultados.}{6}{}%
+\contentsline {section}{\numberline {6.1}Datos meteorológicos.}{6}{}%
+\contentsline {subsection}{\numberline {6.1.1}Mapas estacionales.}{6}{}%
+\contentsline {section}{\numberline {6.2}Datos de consumo.}{6}{}%
+\contentsline {subsection}{\numberline {6.2.1}Evolución temporal.}{6}{}%
+\contentsline {section}{\numberline {6.3}Comparación entre el consumo y lo recolectado.}{6}{}%
+\contentsline {chapter}{\numberline {7}Conclusiones.}{7}{}%
+\contentsline {chapter}{Bibliograf\'{\i }a}{8}{}%

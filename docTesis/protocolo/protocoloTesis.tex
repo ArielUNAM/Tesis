@@ -62,6 +62,7 @@
   \end{figure}
 }
 \newcommand{\refig}[1]{\figurename~\ref{#1}}
+\newcommand{\refeq}[1]{\textbf{ec.}~\ref{#1}}
 \newcommand{\reteo}[1]{$\mathfrak{Teorema}$~\ref{#1}}
 \newcommand{\bb}[1]{\{#1\}}
 
@@ -95,7 +96,7 @@
         \thispagestyle{empty}
         \begin{minipage}[c][0.17\textheight][c]{0.25\textwidth}
             \begin{center}
-                \includegraphics[width=3.5cm, height=3.5cm]{/home/aceron/Documentos/GitHub/Tesis/docTesis/Escudo-UNAM.png}
+                \includegraphics[width=3.5cm, height=4cm]{/home/aceron/Documentos/GitHub/Tesis/docTesis/Escudo-UNAM.png}
             \end{center}
         \end{minipage}
         \begin{minipage}[c][0.195\textheight][t]{0.75\textwidth}
@@ -168,53 +169,55 @@
 %\chapter{Notación}
 
 \chapter{Introducción}
-    En México, el manejo de los recursos hídircos es uno de los grandes temas de interes para diferentes sectores plitico-industriales, por el beneficio económico que genera. 
+    La administración de los recursos hídircos es un tema de gran interés para diferentes sectores, por los beneficios económicos y de salud que genera.
 
-    Actualmente México enfrenta varias problemática sobre el recurso entre las que se encuentran el acceso al recurso, mala calidad en el suministro, la falta de lluvias originado por la tala inmoderada de bosques y selvas, sobre consesiones del recurso\cite{jornada:agua}, y falta de matenimiento a la infraestrucutra existente.
+    Actualmente, México enfrenta varias problemáticas entorno al recurso hídirco entre las que se encuentran: falta de acceso al recurso, la mala calidad del recurso, la deficiencia de lluvias (originados por la tala inmoderada y la destrucción de ecosistémas), exceso de concesiones del recurso \cite{jornada:agua}, y la falta de mantenimiento a la infraestructura existente.
 
-    Aunque en los últimos años se ha reconocido la importancia de cuidar y administrar el recurso \cite{de2019objetivo} \cite{mex:procaptar} son pocas las nuevas tecnologías o métodos que se han desarrollado para la solución del problema. Una de las soluciones que más destaca es la de la captación del agua de lluvia \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} sin embargo las soluciones no consideran aspectos meteorológicos para su aplicación, sino que se realizan mediciones \textit{in situ} para validar la eficiencia del sistema.
+    Aunque en los últimos años se ha reconocido la importancia de cuidar y administrar el recurso \cite{de2019objetivo} \cite{mex:procaptar} son pocas las propuestas tecnologías implementadas para minimizar alguno de los problemas mencionados.
+    Una de las soluciones más reproducida, es la captación del agua de lluvia en zonas urbanas\cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} las cuales se pueden resumir en la implementación y combinación de tres sistemas, a saber, un sistema recolector, un sistema de transporte y un sistema de almacenamiento; sin embargo pocas soluciones consideran aspectos meteorológicos para su aplicación.
 
-    El aprovechamiento de tecnologías meteorológicas, como el radar, podrían dotar de más información que permita validar la eficiencia de sistemas, como el de capatación, sin la necesidad de realizar una instalación, ahorrando costos en la implementación del sistema o, por otro lado, eficientizandolos, además los resultados pueden ser considerados para la implementación de mejores politicas de gestión pública del recurso.
+    El aprovechamiento de instrumentos meteorológicos, como el radar meteorológico, podrían dotar de información que permita validar la eficiencia de los sistemas recolectores, sin la necesidad de realizar una instalación, ahorrando costos en la implementación del sistema. Por otro lado, los campos de precipitación obtenidos mediante el radar meteorológico pueden ser considerados para la implementación de mejores políticas de gestión pública del recurso y para la planeación urbana.
 \newpage
     \section{Hipótesis}
-        Los registros históricos del radar meteorológico pueden proveer información sobre la densidad de precipitación pluvial y las zonas geográficas donde se condensa más este fenómeno. El correcto uso de los datos permitirá observar la evolución de la precipitación y la capacidad que tiene el estado para su aprovechamiento.
+        Los registros históricos del radar meteorológico pueden proveer información sobre la distribución de precipitación pluvial temporal y espacial. El correcto uso de los datos permitirá observar la evolución de la precipitación y la capacidad que tiene el estado para su aprovechamiento.
 
     \section{Objetivos}
         Conocer el comportamiento historio de la precipitación pluvial registrada con datos del radar meteorológico ubicado en el Cerro de la Ronchera para validar sistemas de recolección y almacenamiento de agua de lluvia.
         \subsection{Particulares}
             \begin{itemize}
                 \item Generar mapas hídricos del estado de Querétaro para diferentes años y temporadas del año.
-                \item Conocer y pronosticar la demanda hídirca del estado de Querétaro.
+                \item Conocer y pronosticar la demanda hídrica del estado de Querétaro.
             \end{itemize}
 
     \section{Justificación}
-        El estado de Querétaro ha presentado un crecimiento poblacional acelerado en los últimos años de su historio, lo que trae consigo mayor demanda de recursos básicos, entre los que destaca el acceso al agua. 
-        El acceso al agua se ha visto comprometido de mayor forma en los últimos años y con ello la necesidad de contar con alternativas que permitan a la población contar con acceso al recurso. Uno de los métodos más populares es el de la cosecha de lluvia. Sin embargo la geografía del estado plantea una poblemática al momente de implementar esta solución.
-        Al conocer las necesidades hídircas de la población, así como la capacidad puntual de precipitació facilitaría la implementación de tecnologías y políticas que permitan generar una mayor resilencia en el recurso.
+        El estado de Querétaro ha presentado un crecimiento poblacional acelerado en los últimos años, lo que trae consigo mayor demanda de recursos básicos, entre ellos el acceso al agua, la cual se ha visto comprometido en los últimos años.
+        La alta demanda y la deficiencia del recurso generan la necesidad de contar con alternativas que permitan a la población acceso al recurso. Uno de los métodos más populares es el de la cosecha de lluvia, sin embargo la orografía y el clima del estado plantea una problemática al momento de implementar esta solución. Si se pueden conocer las necesidades hídricas en cada municipio del estado, así como la cantidad de precipitación se facilitaría la implementación de tecnologías y políticas que permitan generar una mayor resiliencia a la escases de agua. Esto puede ser cálculado usando los datos del radar meteorológico de la Comisión Estatal de Aguas de Querétaro (CEA) ubicado en el Cerro de la Ronchera.
 \newpage
 \chapter*{Antecedentes} 
-    El estado de Querétaro ha desarrollado problemas en relación con los recursos hídricos necesarios para satisfacer a la población, la industria y la agricultura. La disponibilidad del agua es la principal limitante del bienestar económico y social a largo plazo en la ciudad, pues el agua debe ser de una calidad acpetable, en cantidad adecuada y continua y a un precio razonable. Para confrontar las prioridades existentes relacionadas con el uso sosteneible de los recursos hídircos es necesario aprovechar todas las oportunidades existentes para la optimización de sus suministro, consumo y conservación.
+    El estado de Querétaro ha desarrollado problemas sobre la disponibilidad de recursos hídricos necesarios para satisfacer a la población, la industria y la agricultura. 
+    
+    La disponibilidad del agua es un elemento importante para el bienestar económico y social de ciudad, y no solo el abasto sino que ésta debe ser de calidad aceptable, en cantidad adecuada y continua y a un precio razonable.
+    
+    Una forma para garantizar más años de acceso al agua es el uso sostenible de los recursos hídircos, para ello es necesario aprovechar todas las fuentes existentes, optimizando su suministro, concientizando su consumo y promoviendo su conservación. Sin embargo, el hecho de que el abastecimiento del agua potable de la zona metropolitana de la ciudad de Querétaro (ZMCQ) provenga principalmente de un acuífero subterráneo sobre-explotado -Acuífero del Valle de Querétaro- refleja una precariedad en la definición de sostenible y representa un riesgo considerable para el gobierno y la sociedad, haciendo inevitable desarrollar estrategias y acciones específicas para garantizar el abasto de agua a largo plazo. Para lograr el abasto de agua sostenible es necesario generar la sustentabilidad\footnote{El desarrollo equitativo que cumple las necesidades del presente sin comprometer la habilidad de las generaciones futuras para cumplir sus propias necesidades} pasando por la conservación de sus fuentes como la lluvia, acuíferos, lagos, rios y bosques hasta llegar a la planeación completa del consumo y su distribución, fomentando el ahorro del recurso y aprovechar al máximo, sin sobreexplotar, las fuentes locales.
 
-    El hecho de que el abastecimiento del agua potable de la zona metropolitana de la ciudad de Querétaro (ZMCQ) provenga principalmente de un acuífero subterráneo sobreexplotado -Acuifero del Valle de Querétaro- representa un riesgo considerable para el gobierno y la sociedad, haciendo inevitable desarrollar estrategias y acciones específicas para garantizar el abasto de agua a largo plazo.
+    Un método popular de aprovechamiento (reflejado en las diferentes tésis y manuales \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion},\cite{queralt2011agua} \cite{unatsabar2004guia}) es el de la captación de agua de lluvia, el cual consiste en la implementación de tres móodulos especializados: uno de captación, uno de transporte y un último de almacenamiento. Sistemás más complejos incluyen  eliminación de bacterias, separación de partículas pesadas o circulación inteligente del recurso.
 
-    Para lograr el abasto de agua es necesario generar la sustentabilidad\footnote{El desarrollo equitativo que cumple las necesidades del presente sin comprometer la habilidad de las generaciones futuras para cumplir sus propias necesidades} pasando por la conservación de sus fuentes, la lluvia, acuíferos, lagos, rios y bosques. Para el uso sustentable del agua se debe hacer una planeación completa fomentando el ahorro del recurso y aprovechar al máximo, sin sobreexplotar, las fuentes locales.
-
-    Un método popular de aprovechamiento es el de la captación de agua de lluvia, llevando a desarrollar tesis \cite{comision2016lineamientos} \cite{hugues2019captacion} \cite{nickisch2018sistemas} \cite{van2013captacion} y guías técnicas para su instalación \cite{queralt2011agua} \cite{unatsabar2004guia}. En todas ellas se puede observar una base constante: un área de captación, un sistema de transporte y un lugar de almacenamiento. Variando uno a otro en técnologías extra como filtración, eliminación de bacterias, usuarios finales o materiales.
 \chapter*{Metodología}
-    \cite{omm2014guia} define diferentes mecanísmos para la medició de la precipitación. Nosotros usaremos la información generada por un radar meteorológico de efecto dopler y aplicaremos la relación $Z-R$ \ref{eq:eq1} para obtener la precipitación acumulada en diferentes periodos de tiempo.
+    La Organización Meteorológica Mundial \cite{omm2014guia} establece diferentes métodos para la medición de la precipitación. En este trabajo, usaremos la información generada por un radar meteorológico Doppler la cual, consiste en registrar el valor de reflectividad generada por la reflección de energía de un blanco (hidrometeóros) al interceptar un pulso electromagnético emitido por el radar,  y aplicaremos la relación $Z-R$ (\refeq{eq:eq1}) que transforma los valores de reflectividad en precipitación acumulada.
     \begin{equation}
         Z= aR^b
         \label{eq:eq1}
     \end{equation}
-    El número de datos almacenados varía en función del tiempo que tarda en generar un mapeo\footnote{Un radar emite un pulso en un cierto ángulo de inclinación (azimuth) y en un cierto ángulo de rotación. Cuando se termina una ratoción el ángulo de inclinación se modifica y, cuando se llega a la inclinación máxima se reinicia el proceso de mapeo.}, normalmente la frecuencia de adquisión de datos para un mismo punto varia entre los 10 y 20 minutos, haciendo necesario un procesamiento de transformación y acumulación para conocer la precipitación en espacios temporales mayores. Para ello se usará una ecuaión de la forma \ref{eq:eq2}, con $n$ la cantidad de datos y $Z_i$ el valor de precipitación acumulada para el dato $i$
+    Los registros de reflectividad en un radar varia en función del tiempo que tarda en generar un mapeo\footnote{Un radar emite un pulso en un cierto ángulo de inclinación (azimuth) y en un cierto ángulo de rotación. Cuando se termina una ratoción el ángulo de inclinación se modifica y, cuando se llega a la inclinación máxima se reinicia el proceso de mapeo.}, normalmente la frecuencia de adquisición de datos para un mismo punto varia entre los 10 y 20 minutos. Sabiendo esto, se realizará una acumulación diaria ($S$) siguiendo la \refeq{eq:eq2}, donde $Z_i$ es un arreglo de valores de precipitación en un tiempo dado y $n$ es la cantidad registros existentes para un día. Si se repite está operación se puede construir otras temporalidades como: semanal, mensual y anual.
+    %Ya que el número de datos registrados por un radar varía en función del tiempo que tarda en generar un mapeo\footnote{Un radar emite un pulso en un cierto ángulo de inclinación (azimuth) y en un cierto ángulo de rotación. Cuando se termina una ratoción el ángulo de inclinación se modifica y, cuando se llega a la inclinación máxima se reinicia el proceso de mapeo.}, normalmente la frecuencia de adquisición de datos para un mismo punto varia entre los 10 y 20 minutos, haciendo necesario un procesamiento de transformación y acumulación para conocer la precipitación en espacios temporales mayores. Para ello se usará una ecuaión de la forma \ref{eq:eq2}, con $n$ la cantidad de datos y $Z_i$ el valor de precipitación acumulada para el dato $i$
     \begin{equation}
         S= \sum^n Z_i
         \label{eq:eq2}
     \end{equation}
     
-    Los datos de consumo serán solicitados a la Comisión Estatal de Aguas de Querétaro (CEA); se espera conocer con estos datos la necesidad hídrica de la población y con esto generar descriptores de consumo, para cada uno de los sectores que define la CEA, que serán de ayuda al momento de validar los sistemas.
+    Aunado a esto se trabajarán con los datos de consumo que la Comisión Estatal de Aguas de Querétaro (CEA) tiene  registrado para diferentes sectores (urbano, agricola, industria, privado); con estos, se espera conocer con estos datos la necesidad hídrica de la población y con esto generar descriptores de consumo, para cada uno de los sectores que define la CEA, que serán de ayuda al momento de validar los sistemas.
 
-    Una vez generada la información de precipitación se construiran mapas hidrícos en diferentes periodos estacionales que describan la capacidad de precipitación en cada zona que mapea el radar. Con ello se pretende conocer si la precipitación de cada zona cubre a los descriptores generados con anterioridad.
+    Una vez generada la información de precipitación se construirán mapas hidrícos en diferentes periodos estacionales que describan la capacidad de precipitación en cada zona del estado. Con ello se pretende conocer si la precipitación de cada zona cubre a los descriptores generados con anterioridad.
     %\figura{0.5}{/home/aceron/Documentos/GitHub/Tesis/docTesis/metodo.png}{Diagrama de proceso}{fig:fig1}
 \newpage
 \tableofcontents
@@ -236,7 +239,7 @@
     \section{Métodos de medición.}
         \subsection{Pluviómetros.}
         \subsection{Medidores de precipitación registradores.}
-\chapter{Radar Meterorológico.}
+\chapter{Radar Meteorológico.}
     \section{Funcionamiento.}
     \section{Aplicación en la meteorología.}
 \chapter{Metodología.}

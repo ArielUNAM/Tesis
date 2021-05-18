@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2020/Arch Linux)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: protocoloTesis.aux
+The style file: apalike.bst
+Database file #1: bibfile.bib
+Warning--there's a number but no volume in gutierrez2019analisis
+Warning--empty journal in stull2018practical
+You've used 17 entries,
+            1935 wiz_defined-function locations,
+            569 strings with 7537 characters,
+and the built_in function-call counts, 5907 in all, are:
+= -- 584
+> -- 205
+< -- 15
++ -- 68
+- -- 66
+* -- 456
+:= -- 1059
+add.period$ -- 50
+call.type$ -- 17
+change.case$ -- 117
+chr.to.int$ -- 17
+cite$ -- 19
+duplicate$ -- 247
+empty$ -- 415
+format.name$ -- 84
+if$ -- 1143
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 16
+newline$ -- 86
+num.names$ -- 51
+pop$ -- 95
+preamble$ -- 1
+purify$ -- 117
+quote$ -- 0
+skip$ -- 206
+stack$ -- 0
+substring$ -- 368
+swap$ -- 34
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 102
+warning$ -- 2
+while$ -- 50
+width$ -- 0
+write$ -- 213
+(There were 2 warnings)
