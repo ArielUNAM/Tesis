@@ -9,11 +9,25 @@
 #
 ########################################################
 
-import os
-from collections import OrderedDict
+# Radar modules
+# ================
 import wradlib as wl
+import pyart
+
+# Data processing
+# ================
 import numpy as np
+import numpy.ma as ma
+from collections import OrderedDict
+
+# Graphical modules
+# ==================
 import matplotlib.pyplot as plt
+
+# System modules
+# =================
+import os
+
 
 # Processing functions
 #######################
@@ -76,15 +90,19 @@ def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shap
     return(dBZ_ord + pia_kraemer)
 
 def vel2bin(data:OrderedDict, val:float=0.0):
-	"""
-		Transfrorma los valores de velocida a valores 0 y 1
-	"""
-	vel= data['data'][1]['sweep_data']['DB_VEL']['data']
-	vel[vel == 0.0]= val
-	vel[vel != 0]= 1
-    
-	return vel
+    """Transfrorma los valores de velocida a valores 0 y 1
 
+    Parameters
+    ----------
+    data : OrderedDict
+        [description]
+    val : float, optional
+        [description], by default 0.0
+    """
+    vel= data['data'][1]['sweep_data']['DB_VEL']['data']
+    vel.mask= ma.nomask
+
+    return vel
 
 def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
     """ Converting Reflectivity to Rainfall
@@ -143,6 +161,19 @@ def ppi(fig,acum,title,xlabel,ylabel,cmap):
     #plt.ylim(-128,128)
     plt.grid(color="grey")
     
+def ppi2(path:str,filename:str,filebase:str,title,save:bool=True):
+    radar = pyart.io.read_rsl(path+filebase)
+    level0=radar.extract_sweeps([0])
+    acumula= np.load(path+filename)
+    level0.add_field('acum', acumula)
+    display = pyart.graph.RadarDisplay(level0)
+    fig = plt.figure(figsize=(12, 10))
+    ax = fig.add_subplot(111)
+    display.plot('acum', 0, title=title,  vmin=0, vmax=5, colorbar_label='', ax=ax)
+    display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
+    display.set_limits(xlim=(-500, 500), ylim=(-500, 500), ax=ax)
+    if ( save ):
+        plt.savefig("filename.png")
 
 # Get info functions
 ####################
@@ -152,9 +183,9 @@ def getCoord(fcontent):
           fcontent['product_hdr']['product_end']['longitude'])
 
 def getElev(fcontent,elev)->bool:
-    print(fcontent['product_hdr']['product_configuration']['product_name'])
-    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
-    print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_stop'].mean())
+    #print(fcontent['product_hdr']['product_configuration']['product_name'])
+    #print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
+    #print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_stop'].mean())
     if (fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean() <  elev):
         return(True)
     else:

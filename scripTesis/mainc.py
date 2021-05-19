@@ -53,8 +53,14 @@ for mes in meses:
                 acumd+= V
             #np.ma.acumd(values,mask)(?)
             #np.save('file',a.compressed())
-            np.savez_compressed("data_{}_{}.npz".format(mes,dia),data=acumd.data,mask=acumd.mask)
-    np.savez_compressed("data_{}.npz".format(mes),data=acumm.data,mask=acumm.mask)
+        try:
+            np.savez_compressed("data/data_{}_{}.npz".format(mes,dia),data=acumd.data,mask=acumd.mask)
+            acumm+= acumd
+            print("Day {} saved".format(dia))
+        except:
+            print("Error to export data_{}_{}".format(mes,dia))
+    np.savez_compressed("data/data_{}.npz".format(mes),data=acumm.data,mask=acumm.mask)
+    print("Month {} saved".format(mes))
     # fig= plt.figure(figsize=(10,8))
     # lt.ppi(fig,acum,title='Acum',xlabel="x",ylabel="y",cmap="viridis")
     # plt.savefig(figp+mes+"_2015_acum.png")
