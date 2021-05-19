@@ -89,21 +89,6 @@ def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shap
     constraint_args=[[59.0]])
     return(dBZ_ord + pia_kraemer)
 
-def vel2bin(data:OrderedDict, val:float=0.0):
-    """Transfrorma los valores de velocida a valores 0 y 1
-
-    Parameters
-    ----------
-    data : OrderedDict
-        [description]
-    val : float, optional
-        [description], by default 0.0
-    """
-    vel= data['data'][1]['sweep_data']['DB_VEL']['data']
-    vel.mask= ma.nomask
-
-    return vel
-
 def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
     """ Converting Reflectivity to Rainfall
 
@@ -177,6 +162,41 @@ def ppi2(path:str,filename:str,filebase:str,title,save:bool=True):
 
 # Get info functions
 ####################
+def getVel(data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False):
+    """Devuelve un maskedArray de los valores de velocidad
+
+    Dado un objeto radar, se extrae los datos de velocidad que de origen son del tipo masked array. Si lo solicita el usuario, se hace un procesamieno de la información modificando los valores del array.
+
+    Parameters
+    ----------
+    data : OrderedDict
+        Objeto radar
+    maskedVal : float, optional
+        Valor que se le asignara a los valores enmascarados, by default None
+    unmmaskedVal : float, optional
+        Valor que se le asignara a los valores no enmascarados. Sino se le da valor se conservan los originales, by default None
+    processing : bool, optional
+        Define si quiere, o no, cambiar los datos, by default True
+
+    Returns
+    -------
+    numpy masked array
+        masked array de la velocidad
+    """
+    vel= data['data'][1]['sweep_data']['DB_VEL']['data']
+
+    if ( processing ):
+        if ( unmmaskedVal != None ):
+            vel[~vel.mask] = unmmaskedVal
+
+        if ( maskedVal == None ):
+            vel.mask= ma.nomask
+        else:
+            vel.mask= maskedVal
+    
+        return vel
+    else:
+        return vel
 
 def getCoord(fcontent):
     return(fcontent['product_hdr']['product_end']['latitude'],
