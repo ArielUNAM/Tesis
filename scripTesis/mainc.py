@@ -37,20 +37,20 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 #Practica con un archivo
 #Segun https://www.youtube.com/watch?v=Va88O9zV_AA llovio el sabado 11 de abril de 2015
 #Acumulación para los meses 7 y 8
-meses= ['07']
+meses= ['07','08']
 elev= 1
 for mes in meses:
     acumm= 0
     for dia in list(data[mes].keys()):
-        #n= len(data[mes][dia])
-        n= 40
+        n= len(data[mes][dia])
+        #n= 40
         acumd= 0
         for i in range(n):#tqdm(range(n)):
             rd= lt.read(data[mes][dia][i],qro2015)
             if (lt.getElev(rd, elev)):
                 vel= lt.getVel(rd,0,1)
                 dBZ= lt.radarDataProcessingChain(rd)
-                V= lt.dBZ_to_V(dBZ,vel,a=74,b=1.6,mult=False)
+                V= lt.dBZ_to_V(dBZ,vel,a=74,b=1.6,mult=True)
                 acumd+= V
             #np.ma.acumd(values,mask)(?)
             #np.save('file',a.compressed())

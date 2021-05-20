@@ -31,7 +31,7 @@ import os
 
 # Processing functions
 #######################
-def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shape: int= -1):
+def radarDataProcessingChain(data:OrderedDict, pia:int=1,elev:list= [], dist:int= -1, shape: int= -1):
     """ Regresa un archivo dBZ listo para ser usado en alguna aplicación numerica o para graficar 
 
     Los archivos de radar se encuentran codificados en diferentes formatos, esta es una de las principales limitantes para los usuarios de los radares. wradlib otorga un conjunto de funciones que permiten, leer, filtrar, corregir y presentar de forma gráfica la información contenida en los archivos producidor por un radar. El conjunto de pasos para transformar la información de radar a un formato manipulable es conocido omo "radar data processin chain", estos pasos no son unicos y cada aplicación puede requerir de más o menos pasos, sin embargo podemos destacr:
@@ -76,17 +76,30 @@ def radarDataProcessingChain(data:OrderedDict, elev:list= [], dist:int= -1, shap
     dBZ_ord = wl.ipol.interpolate_polar(dBZ,desorden)
 
     #Atenuación
-    pia_kraemer = wl.atten.correct_attenuation_constrained(
-    dBZ_ord,
-    a_max=1.67e-4,
-    a_min=2.33e-5,
-    n_a=100,
-    b_max=0.7,
-    b_min=0.65,
-    n_b=6,
-    gate_length=1.,
-    constraints=[wl.atten.constraint_dbz],
-    constraint_args=[[59.0]])
+    if (pia == 1):
+        pia_kraemer = wl.atten.correct_attenuation_constrained(
+        dBZ_ord,
+        a_max=1.67e-4,
+        a_min=2.33e-5,
+        n_a=100,
+        b_max=0.7,
+        b_min=0.65,
+        n_b=6,
+        gate_length=1.,
+        constraints=[wl.atten.constraint_dbz],
+        constraint_args=[[59.0]])
+    else:
+        pia_kraemer = wl.atten.correct_attenuation_constrained(
+        dBZ_ord,
+        a_max=1.67e-4,
+        a_min=2.33e-5, n_a=100,
+        b_max=0.7, b_min=0.65,
+        n_b=6, gate_length=1.,
+        constraints=
+        [wl.atten.constraint_dbz,
+        wl.atten.constraint_pia],
+        constraint_args=
+        [[59.0],[20.0]])
     return(dBZ_ord + pia_kraemer)
 
 def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
