@@ -11,6 +11,7 @@
 
 # Radar modules
 # ================
+from numpy.core.fromnumeric import shape
 import wradlib as wl
 import pyart
 
@@ -63,6 +64,7 @@ def radarDataProcessingChain(data:OrderedDict, pia:int=1,elev:list= [], dist:int
         raise "File not expected"
     else:
         dBZ= data['data'][1]['sweep_data']['DB_DBZ']['data']
+        dBZ= np.nan_to_num(dBZ, copy=False, nan=0, posinf=0, neginf=0)
         if ( not elev ):
             pass
         if ( dist == -1 ):
@@ -100,7 +102,7 @@ def radarDataProcessingChain(data:OrderedDict, pia:int=1,elev:list= [], dist:int
         wl.atten.constraint_pia],
         constraint_args=
         [[59.0],[20.0]])
-    return(dBZ_ord + pia_kraemer)
+    return dBZ_ord, pia_kraemer
 
 def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
     """ Converting Reflectivity to Rainfall
@@ -129,9 +131,18 @@ def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)
     return(np.multiply(vel,V))
 
     """
+    dBZ= np.nan_to_num(dBZ, copy=False, nan=0, posinf=0, neginf=0)
     Z = wl.trafo.idecibel(dBZ)
     R = wl.zr.z_to_r(Z,a=a,b=b)
     V = wl.trafo.r_to_depth(R,intervalos)
+
+    print('Multiply')
+    print("Vel: ",vel.data.max())
+
+    print("Z: ",np.max(Z.data))
+    print("R: ",np.max(R.data))
+    print("V: ",np.max(V.data))
+
     if mult:
         return np.multiply(vel,V)
     else:
@@ -146,7 +157,7 @@ def add_matrix(matrix,data,i=None):
     else:
         return(np.append(matrix,data).reshape(i,360,1201))
         
-def ppi(fig,acum,title,xlabel,ylabel,cmap):
+def ppi(fig,acum,title="Title",xlabel="xlabel",ylabel="ylabel",cmap="viridis"):
     
     ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig)
     #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
@@ -158,20 +169,22 @@ def ppi(fig,acum,title,xlabel,ylabel,cmap):
     #plt.xlim(-128,128)
     #plt.ylim(-128,128)
     plt.grid(color="grey")
+    plt.savefig(title+".png")
     
-def ppi2(path:str,filename:str,filebase:str,title,save:bool=True):
-    radar = pyart.io.read_rsl(path+filebase)
+def ppi2(path1:str,filename:str,path2,filebase:str,title:str,save:bool=True):
+
+    radar = pyart.io.read_rsl(path2+filebase)
     level0=radar.extract_sweeps([0])
-    acumula= np.load(path+filename)
+    acumula= np.load(path1+filename)
     level0.add_field('acum', acumula)
     display = pyart.graph.RadarDisplay(level0)
-    fig = plt.figure(figsize=(12, 10))
+    fig = plt.figure(figsize=(20, 20))
     ax = fig.add_subplot(111)
-    display.plot('acum', 0, title=title,  vmin=0, vmax=5, colorbar_label='', ax=ax)
+    display.plot('acum', 0, title=title,  vmin=0, vmax=150, colorbar_label='', ax=ax)
     display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
-    display.set_limits(xlim=(-500, 500), ylim=(-500, 500), ax=ax)
+    display.set_limits(xlim=(-240, 240), ylim=(-240, 240), ax=ax)#Esto es los rangos del radar
     if ( save ):
-        plt.savefig("filename.png")
+        plt.savefig(filename+".png")
 
 # Get info functions
 ####################
