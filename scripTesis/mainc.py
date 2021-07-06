@@ -43,6 +43,8 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 meses= list(data.keys())
 elev= 1
 
+#RAW_NA_000_236_20150311001109
+
 for mes in meses[:3]:
     print("mes",mes[:3])
     acumm= 0

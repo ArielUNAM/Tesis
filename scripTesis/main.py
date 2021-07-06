@@ -11,17 +11,23 @@
 
 
 import libTesis as lt
+
+from operator import mul
 import matplotlib.pyplot as plt
+import numpy as np
+from time import sleep
+import re, os
+import pickle
 #from Tesis.scripTesis.libTesis import *
 #import pandas as pd
-
+#from tqdm import tqdm
 
 #Rutas a directorios
 figp= "/home/arielcg/Documentos/Tesis/imgTesis/"
 qro2015= "/home/arielcg/QRO_2015/"
 qro2016= "/home/amagaldi/QRO_2016/"
 qro2017= "/home/amagaldi/QRO_2017/"
-
+datap= "/home/arielcg/Documentos/Tesis/datos/acum/"
 ###
 #   Formato del archivo 2015
 #   RAW_NA_000_236_20150306032609
@@ -31,20 +37,13 @@ qro2017= "/home/amagaldi/QRO_2017/"
 
 data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
-#Practica con un archivo
-#Lextura del primer archivo que se enceuntra en el dia 06 del mes 03
-n= len(data['03']['06'])
-acum= 0
+rd= lt.read('RAW_NA_000_236_20150311001109',qro2015)
+n,m= np.shape(rd['data'][1]['sweep_data']['DB_DBZ']['data'])
+plt.figure()
+dBZ_ord, pia= lt.radarDataProcessingChain(rd)
+dBZ= dBZ_ord + pia
+
 for i in range(n):
-    rd= lt.read(data['03']['06'][i],qro2015)
-    #dBZ= lt.radarDataProcessingChain(rd)
-    dBZ, vel= lt.radarDataProcessingChain(rd)
-    Zc= lt.dBZ_to_V(dBZ,vel)
-    acum += V
-    fig = plt.figure(figsize=(10,8))
-    lt.ppi(fig,V,title="No{}".format(i),xlabel="Easting from radar (km)",ylabel="Northing from radar (km)",cmap="viridis")
-    #plt.savefig(figp+"{}".format(i)+"png")
-    #plt.close()
-fig= plt.figure(figsize=(10,8))
-lt.ppi(fig,acum,title="Acum",xlabel="acum",ylabel="acum",cmap="viridis")
-plt.savegif("acum.png")
+    plt.cla()
+    plt.plot(dBZ[i])
+    plt.savefig(figp+'{}.png'.format(i))
