@@ -64,7 +64,7 @@ for mes in meses[:3]:
                         vel= lt.getVel(rd,0,1)
                         dBZ_ord, pia= lt.radarDataProcessingChain(rd)
                         dBZ= dBZ_ord + pia
-                        lt.ppi(fig,pia,figp+data[mes][dia][i])
+                        lt.ppi(fig,dBZ,figp+data[mes][dia][i])
                         plt.close()
                         V= lt.dBZ_to_V(dBZ,vel,a=74,b=1.6,mult=True)
                         acumd+= V
