@@ -159,9 +159,9 @@ def add_matrix(matrix,data,i=None):
     else:
         return(np.append(matrix,data).reshape(i,360,1201))
         
-def ppi(fig,acum,title="Title",xlabel="xlabel",ylabel="ylabel",cmap="viridis"):
+def ppi(fig,acum,title="Title",xlabel="xlabel",ylabel="ylabel",cmap="viridis",vmin:float=0,vmax:float=120):
     
-    ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig,vmin=1,vmax=80)
+    ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig,vmin=vmin,vmax=vmax)
     #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

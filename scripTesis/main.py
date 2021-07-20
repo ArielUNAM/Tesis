@@ -39,11 +39,17 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
 rd= lt.read('RAW_NA_000_236_20150311001109',qro2015)
 n,m= np.shape(rd['data'][1]['sweep_data']['DB_DBZ']['data'])
-plt.figure()
+fig= plt.figure()
 dBZ_ord, pia= lt.radarDataProcessingChain(rd)
-dBZ= dBZ_ord + pia
 
-for i in range(n):
-    plt.cla()
-    plt.plot(dBZ[i])
-    plt.savefig(figp+'{}.png'.format(i))
+print("min dBZ_ord: ",np.min(dBZ_ord))
+print("max dBZ_ord: ",np.max(dBZ_ord))
+lt.ppi(fig,dBZ_ord,figp+'RAW_NA_000_236_20150311001109',vmax=40)
+dBZ= dBZ_ord + pia
+print("min dBZ: ",np.min(dBZ))
+print("max dBZ: ",np.max(dBZ))
+fig.clear()
+lt.ppi(fig,dBZ,figp+'RAW_NA_000_236_20150311001109'+'1',vmax=40)
+print("min pia: ",np.min(pia))
+print("max pia: ",np.max(pia))
+
