@@ -52,4 +52,5 @@ fig.clear()
 lt.ppi(fig,dBZ,figp+'RAW_NA_000_236_20150311001109'+'1',vmax=40)
 print("min pia: ",np.min(pia))
 print("max pia: ",np.max(pia))
-
+fig.clear()
+lt.ppi(fig,pia,figp+'RAW_NA_000_236_20150311001109'+'2',vmax=40)

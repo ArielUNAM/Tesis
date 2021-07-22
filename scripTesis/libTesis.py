@@ -102,6 +102,8 @@ def radarDataProcessingChain(data:OrderedDict, pia:int=1,elev:list= [], dist:int
         wl.atten.constraint_pia],
         constraint_args=
         [[59.0],[20.0]])
+
+    pia_kraemer= np.nan_to_num(pia_kraemer, copy=False, nan=0, posinf=0, neginf=0)
     return dBZ_ord, pia_kraemer
 
 def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
