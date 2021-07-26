@@ -24,10 +24,11 @@ data= lt.getData(qro2015,'RAW_NA_000_236_20150306032609')
 
 print("Start to plot")
 listData= os.listdir(datap)
-r= re.compile("data_03*_")
+r= re.compile("data_03*")
 #r= re.compile("RAW_NA*")
 for dt in list(filter(r.match,listData)):
     lt.ppi2(datap,dt,qro2015,data['07']['01'][0],dt)
+    plt.close()
 
 # idx=['03','04','05','06','07','08','09','10','11','12']
 # for id in idx:

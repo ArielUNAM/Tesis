@@ -46,18 +46,18 @@ elev= 1
 #RAW_NA_000_236_20150311001109
 
 for mes in meses[:3]:
-    print("mes",mes[:3])
+    #print("mes",mes[:3])
     acumm= 0
     dias= list(data[mes].keys())
-    print("numdias",dias)
+    #print("numdias",dias)
     if ( len(dias) > 0 ):
         for dia in dias:
             #n= len(data[mes][dia])
             n= 10
-            print("number",n)
+            #print("number",n)
             acumd= 0
             for i in range(n):#tqdm(range(n)):
-                fig= plt.figure(figsize=(10,8))
+                
                 rd= lt.read(data[mes][dia][i],qro2015)
                 if (lt.getRange(rd,236000,921)):
                     if ( lt.getElev(rd, elev) ):
@@ -65,19 +65,21 @@ for mes in meses[:3]:
                         dBZ_ord, pia= lt.radarDataProcessingChain(rd)
                         dBZ= dBZ_ord + pia
                         V= lt.dBZ_to_V(dBZ,vel,a=74,b=1.6,mult=True)
-                        lt.ppi(fig,V,figp+data[mes][dia][i],vmin=18050)
-                        plt.close()
                         acumd+= V
+                        
                 #np.ma.acumd(values,mask)(?)
                 #np.save('file',a.compressed())
             try:
+                
                 np.savez_compressed(datap+"data_{}_{}.npz".format(mes,dia),data=np.nan_to_num(acumd.data),mask=acumd.mask)
                 acumm+= np.nan_to_num(acumd.data)
                 print("Day {} saved".format(dia))
-            except:
+            except Exception as e:
                 print("Error to export data_{}_{}".format(mes,dia))
+                print
         try:
             #np.savez_compressed(datap+"data_{}.npz".format(mes),data=acumm.data,mask=acumm.mask)
+            
             np.savez_compressed(datap+"data_{}.npz".format(mes),data=acumm.data)
             print("Month {} saved".format(mes))
         except:

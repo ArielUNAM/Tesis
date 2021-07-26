@@ -140,12 +140,12 @@ def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)
     V = wl.trafo.r_to_depth(R,intervalos)
 
     V= np.nan_to_num(V, copy=False, nan=0, posinf=0, neginf=0)
-    print('Multiply')
-    print("Vel: ",vel.data.max())
+    #print('Multiply')
+    #print("Vel: ",vel.data.max())
 
-    print("Z: ",np.max(Z.data))
-    print("R: ",np.max(R.data))
-    print("V: ",np.max(V.data))
+    #print("Z: ",np.max(Z.data))
+    #print("R: ",np.max(R.data))
+    #print("V: ",np.max(V.data))
 
     if mult:
         return np.multiply(vel,V)
@@ -248,7 +248,7 @@ def getRange(fcontent,dist,shape):
     gate_nbin =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
     gate_size=round((gate_nbin - gate_0)/(nbins))
     range_rad=gate_0 + gate_size * np.arange(nbins, dtype='float32')
-    print(range_rad[-1],range_rad.shape[0])
+    #print(range_rad[-1],range_rad.shape[0])
     if (range_rad[-1] == dist) and (range_rad.shape[0] == shape):
         return(True)
     else:
