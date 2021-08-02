@@ -274,7 +274,7 @@ def getVer(fcontent):
 def getWeekNumber(year:int,month:int,day:int)-> int:
     ''' Devuelve el número de la semana de una fecha en particular
     '''
-    return datetime.date(year, month, day).isocalendar()[1]
+    return datetime.date(int(year), int(month), int(day)).isocalendar()[1]
 
 def getAcumBy(By,Fpath,Dpath)->object:
     '''Devuelve el acumulado segun el tipo indicado
@@ -412,7 +412,6 @@ def mkdir(name,path):
         os.mkdir(name)
 
 def saveday(root,files,save,year):
-
     acum_daily=0
     path= root+files
     names= get_names(path)      
@@ -428,76 +427,61 @@ def saveday(root,files,save,year):
             for day in DAYS_LIST:
                 acum_daily += getDataByDay(year,month,day,path,SCANN_RANGE,PARAM_VEL,PARAM_TRANS)
 
-            mkdir(month,save+year)
-
+            mkdir(month,save+year+'/')
+            n_week= getWeekNumber(year,month,day)
+            n_week= '0' + str(n_week) if n_week < 10 else str(n_week)
+            mkdir(n_week,save+year+month+'/')
             try:
-                spath= save+year+month
-                n_week= getWeekNumber(year,month,day)
-                np.savez_compressed(spath+"/radar_{}_{}_{}_{}.npz".format(year,month,day,str(n_week)),data=acum_daily.data)
+                spath= save+year+'/'+month+'/'+n_week
+                np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum_daily.data)
             except Exception as e:
                 print(e)
                 print("Error to export data_{}_{}_{}".format(year,month,day))
 
-def get_analisys_by(by:str,path:str):
-    by= by.upper()
-    if ( by == 'WEEK' ):
-        d_week= {}
-        d_data= {}
-        names= sorted(os.listdir(path))
-        aux= names[-2:]
+def saveweek(root):
+    meses= os.listdir(root)
+    for mes in meses:
+        semanas= os.listdir(root+mes)
+        for semana in semanas:
+            acum= 0
+            dias= os.listdir(root+mes+'/'+semana)
+            for dia in dias:
+                data= np.load(root+mes+'/'+semana+'/'+dia)
+                acum+= data['data']
+            try:
+                spath= root+mes+'/'
+                year= dia[6:8]
+                np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,mes,semana),data=acum)
+            except Exception as e:
+                print(e)
+                print("Error to export data_{}_{}_{}".format(year,mes,semana))
+
+def savemonth(root):
+    meses= os.listdir(root)
+    for mes in meses:
+        semanas= os.listdir(root+mes)
+        r= re.compile("*.npz")
+        semanas= list(filter(r.match,semanas))
         acum= 0
-        for name in names:
-            data= np.load(name)
-            if ( name[-2:] ==  aux ):
-                acum += data['data']
-            else:
-                d_data['data']= acum
-                d_week[aux]= d_data
-                acum= data['data']
-                aux= name[-2:]
-        return d_week
-
-    elif ( by == 'MONTH' ):
-        d_week= {}
-        d_data= {}
-        names= sorted(os.listdir(path))
-        aux= names[9:11]
-        acum= 0
-        for name in names:
-            data= np.load(name)
-            if ( name[9:11] ==  aux ):
-                acum += data['data']
-            else:
-                d_data['data']= acum
-                d_week[aux]= d_data
-                acum= data['data']
-                aux= name[9:11]
-        return d_week
-    elif ( by == 'YEAR' ):
-        d_week= {}
-        d_data= {}
-        names= sorted(os.listdir(path))
-        aux= names[6:8]
-        acum= 0
-        for name in names:
-            data= np.load(name)
-            if ( name[6:8] ==  aux ):
-                acum += data['data']
-            else:
-                d_data['data']= acum
-                d_week[aux]= d_data
-                acum= data['data']
-                aux= name[6:8]
-        return d_week
-    else:
-        raise("By type not expeceted. Type recived {}".format(by))
-
-def print_report(analisys):
-    pass
-    
+        for semana in semanas:
+            data= np.load(root+mes+'/'+semana)
+            acum+= data['data']
+            try:
+                spath= root
+                year= semana[6:8]
+                np.savez_compressed(spath+"/radar_{}_{}.npz".format(year,mes),data=acum)
+            except Exception as e:
+                print(e)
+                print("Error to export data_{}_{}".format(year,mes))
 
 
-
-            
-
-
+def get_year(root):
+    meses= os.listdir(root)
+    r= re.compile("*.npz")
+    meses= list(filter(r.match,meses))
+    acum= 0
+    for mes in meses:
+        data= np.load(root+mes)
+        acum+= data['data']
+        
+    return acum
