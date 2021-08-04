@@ -32,12 +32,14 @@ import matplotlib.pyplot as plt
 # =================
 import os
 
+from tqdm import tqdm
 # VARIABLES
 # =================
 MONTHS_LIST= ['01','02','03','04','05','06','07','08','09','10','11','12']
 SCANN_RANGE= [236000,921]
 PARAM_VEL= [0,1]
 PARAM_TRANS=[74,1.6,True]
+ELEVATION= 1
 
 # Processing functions
 #######################
@@ -364,8 +366,11 @@ def read(filename:str,path:str= 'default'):
     #sizeof= os.stat(path+filename).st_size / (1024 * 1024)
     return wl.io.iris.read_iris(path+filename)
 
+### Funciones de Ejecucion
+# ===================
 def radar2numpy(filename,fpath,elevation,l_range,l_vel,l_params):
     rd= read(filename,fpath)
+    V= 0
     if ( getRange(rd,l_range[0],l_range[1]) and getElev(rd,elevation) ):
         vel= getVel(rd,l_vel[0],l_vel[1])
         dBZ_ord, pia= radarDataProcessingChain(rd)
@@ -378,22 +383,31 @@ def get_unique(names,n:int=15)->list:
     for name in names:
         if ( name[:n] not in basename ):
             basename.append(name[:n])
+            
     return basename
 
 def getDataByDay(year,month,day,fpath,elevation,l_range,l_vel,l_params):
-    basename= get_unique(get_names(fpath))           
+    basename= get_unique(os.listdir(fpath))           
     for i in range(len(basename)):
         name= basename[i]+year+month+day
         names= os.listdir(fpath)
-        r= re.compile(name+'*')
-        names= list(filter(r.match, names))
+        
+        names= list(filter(lambda x: x if name==x[:len(name)] else 0,names))
+        names= list(set(names))
+
+        try:
+            names.pop(names.index(0))
+        except:
+            pass
+
         if ( names ):
             break
-    
-    acum= None
+        
+    names= list(set(names))
+    acum= 0
     for name in names:
         acum= radar2numpy(name,fpath,elevation,l_range,l_vel,l_params)
-
+    
     return acum
         
 def get_strlistofnubers(n:int):
@@ -414,74 +428,97 @@ def mkdir(name,path):
 def saveday(root,files,save,year):
     acum_daily=0
     path= root+files
-    names= get_names(path)      
+    names= sorted(os.listdir(path))         
     basenames= get_unique(names)
 
     mkdir(year,save)
 
     if ( len(basenames) > 1 ):
-        print(basenames)
+        print('basenames:',basenames)
     else:
         for month in MONTHS_LIST:
-            DAYS_LIST= get_strlistofnubers(monthrange(year, int(month))[1])
-            for day in DAYS_LIST:
-                acum_daily += getDataByDay(year,month,day,path,SCANN_RANGE,PARAM_VEL,PARAM_TRANS)
+            DAYS_LIST= get_strlistofnubers(monthrange(int(year), int(month))[1])
+            for day in tqdm(DAYS_LIST):
+                acum_daily= getDataByDay(year,month,day,path,ELEVATION,SCANN_RANGE,PARAM_VEL,PARAM_TRANS)
 
-            mkdir(month,save+year+'/')
-            n_week= getWeekNumber(year,month,day)
-            n_week= '0' + str(n_week) if n_week < 10 else str(n_week)
-            mkdir(n_week,save+year+month+'/')
-            try:
-                spath= save+year+'/'+month+'/'+n_week
-                np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum_daily.data)
-            except Exception as e:
-                print(e)
-                print("Error to export data_{}_{}_{}".format(year,month,day))
+                if ( type(acum_daily) != int ):
+                    mkdir(month,save+year+'/')
+                    n_week= getWeekNumber(year,month,day)
+                    n_week= '0' + str(n_week) if n_week < 10 else str(n_week)
+                    mkdir(n_week,save+year+'/'+month+'/')
+
+                    try:
+                        spath= save+year+'/'+month+'/'+n_week
+                        np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum_daily.data)
+
+                    except Exception as e:
+                        print(e)
+                        print("Error to export data_{}_{}_{}".format(year,month,day))
+def find(name, path):
+    for _, _, files in os.walk(path):
+        if name in files:
+            #return os.path.join(root, name)
+            return True
+        else:
+            return False
 
 def saveweek(root):
-    meses= os.listdir(root)
-    for mes in meses:
-        semanas= os.listdir(root+mes)
-        for semana in semanas:
-            acum= 0
-            dias= os.listdir(root+mes+'/'+semana)
-            for dia in dias:
-                data= np.load(root+mes+'/'+semana+'/'+dia)
-                acum+= data['data']
-            try:
-                spath= root+mes+'/'
-                year= dia[6:8]
-                np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,mes,semana),data=acum)
-            except Exception as e:
-                print(e)
-                print("Error to export data_{}_{}_{}".format(year,mes,semana))
+    years= os.listdir(root)
+    years= [year for year in years if os.path.isdir(root+year)]
+    for year in years:
+        meses= os.listdir(root+year)
+        meses= [mes for mes in meses if os.path.isdir(root+year+'/'+mes)]
+        for mes in meses:
+            semanas= os.listdir(root+year+'/'+mes)
+            semanas= [semana for semana in semanas if os.path.isdir(root+year+'/'+mes+'/'+semana)]
+            for semana in semanas:
+                dias= os.listdir(root+year+'/'+mes+'/'+semana)
+                acum= 0
+                for dia in dias:
+                    data= np.load(root+year+'/'+mes+'/'+semana+'/'+dia)
+                    acum+= data['data']
+                try:
+                    
+                    spath= root+year+'/'+mes
+                    np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,mes,semana),data=acum)
+                except Exception as e:
+                    print(e)
+                    print("Error to export data_{}_{}_{}".format(year,mes,semana))
 
 def savemonth(root):
-    meses= os.listdir(root)
-    for mes in meses:
-        semanas= os.listdir(root+mes)
-        r= re.compile("*.npz")
-        semanas= list(filter(r.match,semanas))
-        acum= 0
-        for semana in semanas:
-            data= np.load(root+mes+'/'+semana)
-            acum+= data['data']
+    years= os.listdir(root)
+    years= [year for year in years if os.path.isdir(root+year)]
+    for year in years:
+        meses= os.listdir(root+year)
+        meses= [mes for mes in meses if os.path.isdir(root+year+'/'+mes)]
+        for mes in meses:
+            semanas= os.listdir(root+year+'/'+mes)
+            semanas= [semana for semana in semanas if not os.path.isdir(root+year+'/'+mes+'/'+semana)]
+            acum= 0
+            for semana in semanas:
+                data= np.load(root+year+'/'+mes+'/'+semana)
+                acum+= data['data']
             try:
-                spath= root
-                year= semana[6:8]
+                spath= root+year
                 np.savez_compressed(spath+"/radar_{}_{}.npz".format(year,mes),data=acum)
             except Exception as e:
                 print(e)
                 print("Error to export data_{}_{}".format(year,mes))
 
 
-def get_year(root):
-    meses= os.listdir(root)
-    r= re.compile("*.npz")
-    meses= list(filter(r.match,meses))
-    acum= 0
-    for mes in meses:
-        data= np.load(root+mes)
-        acum+= data['data']
-        
-    return acum
+def saveyear(root):
+    years= os.listdir(root)
+    years= [year for year in years if os.path.isdir(root+year)]
+    for year in years:
+        meses= os.listdir(root+year)
+        meses= [mes for mes in meses if not os.path.isdir(root+year+'/'+mes)]
+        acum= 0
+        for mes in meses:
+            data= np.load(root+year+'/'+mes)
+            acum+= data['data']
+        try:
+            spath= root
+            np.savez_compressed(spath+"/radar_{}.npz".format(year),data=acum)
+        except Exception as e:
+            print(e)
+            print("Error to export data_{}".format(year))

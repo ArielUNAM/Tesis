@@ -12,4 +12,4 @@
 ./all/wradlib-data-master/geo/bonn_new.tif
 .ipynb_checkpoints
 .vscode
-./all
+./all*.npz
