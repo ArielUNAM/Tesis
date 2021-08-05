@@ -11,6 +11,7 @@
 
 # Radar modules
 # ================
+from genericpath import isdir
 from numpy.core.fromnumeric import shape
 import wradlib as wl
 import pyart
@@ -33,6 +34,8 @@ import matplotlib.pyplot as plt
 import os
 
 from tqdm import tqdm
+
+
 # VARIABLES
 # =================
 MONTHS_LIST= ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -186,21 +189,27 @@ def ppi(fig,acum,title="Title",xlabel="xlabel",ylabel="ylabel",cmap="viridis",vm
     plt.grid(color="grey")
     plt.savefig(title+".png")
     
-def ppi2(path1:str,filename:str,path2,filebase:str,title:str,save:bool=True):
+def ppi2(path1:str,filename:str,title:str,save:bool=True,psave:str='./',filebase='RAW_NA_000_236_20150507171109',path2='/home/arielcg/QRO_2015/'):
 
+    
     radar = pyart.io.read_rsl(path2+filebase)
     level0=radar.extract_sweeps([0])
-    acumula= np.load(path1+filename)
+
+    acumula= np.load(path1)
     level0.add_field('acum', acumula)
     display = pyart.graph.RadarDisplay(level0)
-    fig = plt.figure(figsize=(20, 20))
+    fig = plt.figure(figsize=(20, 20)) #Relación 1
     ax = fig.add_subplot(111)
-    display.plot('acum', 0, title=title,  vmin=0, vmax=150, colorbar_label='', ax=ax)
+    #display.plot('acum', 0, title=title,  vmin=0, vmax=150, colorbar_label='', ax=ax)
+    display.plot('acum', 0, title=title, vmin=0,vmax=1,  colorbar_label='', ax=ax)
     display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
-    display.set_limits(xlim=(-240, 240), ylim=(-240, 240), ax=ax)#Esto es los rangos del radar
+    #display.set_limits(xlim=(-240, 240), ylim=(-240, 240), ax=ax)#Esto es los rangos del radar
     if ( save ):
-        plt.savefig(filename+".png")
-
+        plt.savefig(psave+filename+".png")
+        plt.close()
+    else:
+        plt.show()
+        
 # Get info functions
 ####################
 def getVel(data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False):
@@ -522,3 +531,60 @@ def saveyear(root):
         except Exception as e:
             print(e)
             print("Error to export data_{}".format(year))
+
+def makepath(files,path:str='.',bo:bool=True):
+    if ( bo ):
+        return [path+f for f in files if not os.path.isdir(path+f)]
+    else:
+        return [path+f+'/' for f in files if os.path.isdir(path+f)]
+
+def path2file(sdt:str,path:str,file=True):
+
+    sdt= sdt.upper()
+    files= os.listdir(path)
+    data= []
+    if ( sdt ==  'YEAR'):
+        return makepath(files,path,file)
+
+    elif ( sdt == 'MONTH' ):
+        ypath= path2file('YEAR',path,False)
+        for pyear in ypath:
+            files= os.listdir(pyear)
+            data.extend(makepath(files,pyear,file))
+        return data
+
+    elif ( sdt == 'WEEK' ):
+        #Quiero entrar a cada mes de cada a;o
+        mpath= path2file('MONTH',path,False)
+        for pmonth in mpath:
+            files= os.listdir(pmonth)
+            data.extend(makepath(files,pmonth,file))
+        return data
+        #for pmonth in mpath:
+            #files= os
+
+    elif ( sdt == 'DAILY' ):
+        dpath= path2file('WEEK',path,False)
+        for pday in dpath:
+            files= os.listdir(pday)
+            data.extend(makepath(files,pday,file))
+        return data
+    else:
+        raise('Please type YEAR, MONTH or WEEK')
+
+def plot_data(sdt,files,path):
+
+    sdt= sdt.upper()
+    for f in files:       
+        if ( sdt == 'YEAR'):
+            name=  f[-8:-4]
+        elif ( sdt == 'MONTH' ):
+            name=  f[-11:-4]
+        elif ( (sdt == 'DAILY') or (sdt == 'WEEK') ):
+            name=  f[-20:-4]
+        else:
+            raise('Please type YEAR, MONTH or WEEK')
+        
+        ppi2(f,'figure_'+ name,'Acumulado_'+name,save=True,psave=path)
+            
+        
