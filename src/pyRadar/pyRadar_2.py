@@ -81,7 +81,7 @@ import numpy as np
 import numpy.ma as ma
 from collections import OrderedDict
 import datetime
-from calendar import monthrange, week
+from calendar import month, monthrange, week
 
 # Graphical libraries
 # ==================
@@ -120,7 +120,7 @@ def get_dict_of_data_by_month(ldata:list,date_len:int)->dict:
         orderDicMon[mes].append(data)
     return orderDicMon
 
-def get_hdict_of_data_pat(path_to_data:str)->dict:
+def get_dict_of_data_path(path_to_data:str)->dict:
     """Returns a dictionary of dictionaries that stores the location of the data classified by year, month and day; having this data as the keys.
 
     :param path_to_data: Path to data radar
@@ -183,7 +183,7 @@ def get_basenames_of(words:list,word_length:int)->list:
 
 # Data reading and processing
 # ========================================
-def reflectivity_to_rainfall(dBZ:ndarray,vel:ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->ndarray:
+def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
 
     Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
@@ -251,13 +251,13 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
     pia= data_cleaner(pia)
     return (dBZ_ord,pia)
 
-def clutter_processing(reflectivity:ndarray,tr1:float=12,n_p:float=12,tr2:float=1.1)->ndarray:
-    """ Return a ndarray after a clutter filter
+def clutter_processing(reflectivity:np.ndarray,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
+    """ Return a np.ndarray after a clutter filter
 
     Clutter filter published by Gabella et al., 2002 is applied
 
     :param reflectivity: [description]
-    :type reflectivity: ndarray
+    :type reflectivity: np.ndarray
     :param tr1: [description], defaults to 12
     :type tr1: float, optional
     :param n_p: [description], defaults to 12
@@ -270,7 +270,7 @@ def clutter_processing(reflectivity:ndarray,tr1:float=12,n_p:float=12,tr2:float=
     desorden = wl.clutter.filter_gabella(reflectivity,
                                          tr1=tr1,n_p=n_p, tr2=tr2)
     return wl.ipol.interpolate_polar(reflectivity,desorden)
-def pia_processing(dBZ_order:ndarray,a_max:float=1.67e-4,
+def pia_processing(dBZ_order:np.ndarray,a_max:float=1.67e-4,
                         a_min:float=2.33e-5,
                         n_a:float=100,
                         b_max:float=0.7,
@@ -278,11 +278,11 @@ def pia_processing(dBZ_order:ndarray,a_max:float=1.67e-4,
                         n_b:float=6,
                         gate_length:float=1,
                         constraints:list=[wl.atten.constraint_dbz],
-                        constraint_args:list=[[59.0]])->ndarray:
+                        constraint_args:list=[[59.0]])->np.ndarray:
     """Return values to correct the reflectivity values
 
     :param dBZ_order: Reflectivity after clutter
-    :type dBZ_order: ndarray
+    :type dBZ_order: np.ndarray
     :param a_max: [description], defaults to 1.67e-4
     :type a_max: float, optional
     :param a_min: [description], defaults to 2.33e-5
@@ -302,7 +302,7 @@ def pia_processing(dBZ_order:ndarray,a_max:float=1.67e-4,
     :param constraint_args: [description], defaults to [[59.0]]
     :type constraint_args: list, optional
     :return: [description]
-    :rtype: ndarray
+    :rtype: np.ndarray
     """
     return wl.atten.correct_attenuation_constrained(
         dBZ_order,
@@ -316,19 +316,19 @@ def pia_processing(dBZ_order:ndarray,a_max:float=1.67e-4,
         constraints=constraints,
         constraint_args=constraint_args)
         
-def data_cleaner(data:ndarray,nan:float=0,posinf:float=0,neginf:float=0)->ndarray:
-    """Return a ndarray change the nan an inf values
+def data_cleaner(data:np.ndarray,nan:float=0,posinf:float=0,neginf:float=0)->np.ndarray:
+    """Return a np.ndarray change the nan an inf values
 
     :param data: Numpy array of data
-    :type data: ndarray
+    :type data: np.ndarray
     :param nan: Values to nan, defaults to 0
     :type nan: float, optional
     :param posinf: Values to -inf, defaults to 0
     :type posinf: float, optional
     :param neginf: Values to +inf, defaults to 0
     :type neginf: float, optional
-    :return: A ndarray change the nan an inf values
-    :rtype: ndarray
+    :return: A np.ndarray change the nan an inf values
+    :rtype: np.ndarray
     """
     return np.nan_to_num(data, copy=False, nan=nan, posinf=posinf, neginf=neginf)
 
@@ -342,10 +342,10 @@ def get_range(iris_data:OrderedDict):
 def get_version(iris_data:OrderedDict)->str:
     return iris_data['product_hdr']['product_end']['iris_version_created']
 
-def get_elevation(iris_data:OrderedDict)-ndarray:
+def get_elevation(iris_data:OrderedDict)->np.ndarray:
     return iris_data['data'][1]['sweep_data']['DB_DBT']['ele_start']
 
-def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False)->ndarray:
+def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False)->np.ndarray:
     """Return the velocity of a iris data.
 
     :param iris_data: [description]
@@ -357,9 +357,9 @@ def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float
     :param processing: [description], defaults to False
     :type processing: bool, optional
     :return: [description]
-    :rtype: ndarray
+    :rtype: np.ndarray
     """
-    vel= data['data'][1]['sweep_data']['DB_VEL']['data']
+    vel= iris_data['data'][1]['sweep_data']['DB_VEL']['data']
 
     if ( processing ):
         if ( unmmaskedVal != None ):
@@ -374,7 +374,7 @@ def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float
     else:
         return vel
 
-def get_reflectivity(iris_data:OrderedDict)->ndarray:
+def get_reflectivity(iris_data:OrderedDict)->np.ndarray:
     """Return the reflectivity of a iris data.
 
     Precipitation intensity is measured by a ground-based radar that bounces radar waves off of precipitation. The Local Radar base reflectivity product is a display of echo intensity (reflectivity) measured in dBZ (decibels).
@@ -415,10 +415,13 @@ def generate_numpy_files(path_to_files:str,
                          week:str='all',
                          day:str='all'
                          ):
+    dict_of_data= get_dict_of_data_path(path_to_files)
     if ( month == 'all' ):
         if ( week == 'all' ):
             if ( day == 'all' ):
-                pass
+                generate_directory_structure(dict_of_data,
+                                                year,path_to_save)
+
             else:
                 pass
         else:
@@ -438,7 +441,6 @@ def generate_numpy_files(path_to_files:str,
                 pass
             else:
                 pass
-
 
 def mkdir(path:str,name:str):
     list_dir= os.listdir(path)
@@ -454,15 +456,33 @@ def int_to_str(number:int)->str:
 
 def generate_directory_structure(dict_of_data_path:dict,year:str,path:str):
     mkdir(path,year)
-    path= path+year
+    path= path+year+'/'
     months= dict_of_data_path.keys()
     for month in months:
         mkdir(path,month)
-        days= month.keys()
-        for day in days():
-            n_week= int_to_str(get_week_number(year,month,day))
-            mkdir(path+month,n_week)
+        days= dict_of_data_path[month].keys()
+        if ( days ):
+            for day in days:
+                n_week= int_to_str(get_week_number(year,month,day))
+                mkdir(path+month+'/',n_week)
 
 def get_week_number(year:str,month:str,day:str)-> int:
     return datetime.date(int(year), int(month), int(day)).isocalendar()[1]
+
+def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year:str,month:str,day:str):
+    days= dict_of_data[month].keys()
+    acum= []
+    if ( days ):
+        data= dict_of_data[month][day]
+        if ( data ):
+            for d in data:
+                iris=get_iris_data(path_to_data+d)
+                dBZ,pia= data_processing_chain(iris)
+                acum+= reflectivity_to_rainfall(dBZ+pia,
+                                    get_velocity(iris))
+            n_week= int_to_str(get_week_number(year,month,day))
+            path_to_save= path_to_save+year+'/'+month+'/'+n_week+'/'
+            np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum)
+
+            
 
