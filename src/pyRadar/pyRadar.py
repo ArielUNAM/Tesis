@@ -201,7 +201,7 @@ def ppi2(path1:str,filename:str,title:str,save:bool=True,psave:str='./',filebase
     fig = plt.figure(figsize=(20, 20)) #Relación 1
     ax = fig.add_subplot(111)
     #display.plot('acum', 0, title=title,  vmin=0, vmax=150, colorbar_label='', ax=ax)
-    display.plot('acum', 0, title=title, vmin=0,vmax=1,  colorbar_label='', ax=ax)
+    display.plot('acum', 0, title=title, vmin=0,vmax=0.9,  colorbar_label='', ax=ax)
     display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
     #display.set_limits(xlim=(-240, 240), ylim=(-240, 240), ax=ax)#Esto es los rangos del radar
     if ( save ):
@@ -377,17 +377,27 @@ def read(filename:str,path:str= 'default'):
 
 ### Funciones de Ejecucion
 # ===================
-def radar2numpy(filename,fpath,elevation,l_range,l_vel,l_params):
+def radar2numpy(filename,fpath,elevation,l_range,l_vel,l_params,retrunV:bool=True):
     rd= read(filename,fpath)
-    V= 0
     if ( getRange(rd,l_range[0],l_range[1]) and getElev(rd,elevation) ):
         vel= getVel(rd,l_vel[0],l_vel[1])
         dBZ_ord, pia= radarDataProcessingChain(rd)
-        V= dBZ_to_V(dBZ_ord+pia,vel,l_params[0],l_params[1],l_params[2])
+        if ( retrunV ):
+            V= dBZ_to_V(dBZ_ord+pia,vel,l_params[0],l_params[1],l_params[2])
+            return V
+        return dBZ_ord+pia
 
-    return V
+def get_n(word:str):
+    n= len(word) - 1
+    while (True):
+        if ( word[n] == '_' ):
+            break
+        else:
+            n-= 1
+    return n+1
 
-def get_unique(names,n:int=15)->list:
+def get_unique(names)->list:
+    n= get_n(names[0])
     basename= []
     for name in names:
         if ( name[:n] not in basename ):
@@ -395,28 +405,22 @@ def get_unique(names,n:int=15)->list:
             
     return basename
 
-def getDataByDay(year,month,day,fpath,elevation,l_range,l_vel,l_params):
-    basename= get_unique(os.listdir(fpath))           
-    for i in range(len(basename)):
-        name= basename[i]+year+month+day
-        names= os.listdir(fpath)
-        
-        names= list(filter(lambda x: x if name==x[:len(name)] else 0,names))
-        names= list(set(names))
-
-        try:
-            names.pop(names.index(0))
-        except:
-            pass
-
-        if ( names ):
-            break
-        
+def getDataByDay(year,month,day,fpath,elevation,l_range,l_vel,l_params,basename):     
+    name= basename+year+month+day
+    names= os.listdir(fpath)
+    
+    names= list(filter(lambda x: x if name==x[:len(name)] else 0,names))
     names= list(set(names))
+
+    try:
+        names.pop(names.index(0))
+    except:
+        pass
+
+        
     acum= 0
     for name in names:
-        acum= radar2numpy(name,fpath,elevation,l_range,l_vel,l_params)
-    
+        acum+= radar2numpy(name,fpath,elevation,l_range,l_vel,l_params)
     return acum
         
 def get_strlistofnubers(n:int):
@@ -434,9 +438,17 @@ def mkdir(name,path):
         name= path+name
         os.mkdir(name)
 
-def saveday(root,files,save,year):
+def saveday(path:str,save:str,year:str):
+    """Guarda en un archivo npz la matriz que contiene la informacion de la intensidad de precipitacion. Para lograr esto se necesita la ruta donde se encuentran los datos de radar. La ruta general donde se quiera almacenar la información y el año sobre el cual se esta realizando el analisis.
+
+    :param files: [description]
+    :type files: str
+    :param save: [description]
+    :type save: str
+    :param year: [description]
+    :type year: str
+    """
     acum_daily=0
-    path= root+files
     names= sorted(os.listdir(path))         
     basenames= get_unique(names)
 
@@ -444,11 +456,12 @@ def saveday(root,files,save,year):
 
     if ( len(basenames) > 1 ):
         print('basenames:',basenames)
+        #Por hacer funcion que haga el acumulado cuando se tenga diferente nomenclatura en el nombre
     else:
         for month in MONTHS_LIST:
             DAYS_LIST= get_strlistofnubers(monthrange(int(year), int(month))[1])
             for day in tqdm(DAYS_LIST):
-                acum_daily= getDataByDay(year,month,day,path,ELEVATION,SCANN_RANGE,PARAM_VEL,PARAM_TRANS)
+                acum_daily= getDataByDay(year,month,day,path,ELEVATION,SCANN_RANGE,PARAM_VEL,PARAM_TRANS,basenames[0])
 
                 if ( type(acum_daily) != int ):
                     mkdir(month,save+year+'/')

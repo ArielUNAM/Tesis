@@ -6,7 +6,7 @@ import src.pyRadar.pyRadar as pr
 
 path= '/home/arielcg/Documentos/Tesis/src/data/radar/'
 img= '/home/arielcg/Documentos/Tesis/src/data/img/'
-sdt= 'week'
+sdt= 'month'
 
 files= pr.path2file(sdt,path)
 pr.plot_data(sdt,files,img+sdt+'/')
