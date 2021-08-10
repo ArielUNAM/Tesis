@@ -1,40 +1,96 @@
 ################
-#   Ariel Cerón G.
 #
-#   UNAM
+#   name: pyRadar.py
+#   auhor:  Ariel Cerón G.
+#   UNAM, Tesis de licenciatura
 #   Queratero, 2021
-#   Tesis de licenciatura
+#   
 #
-#   Funciones auxiliares para trabajar con la libreria wradlib
+#   Entre los datos más codiciados se encuentran la evolución en el tiempo
+#   y la distribución espacial de la precipitación pluvial. El radar 
+#   meteorológico es un instrumento de observación atmosférica orientado a
+#   la vigilancia continua (en tiempo y espacio) de la precipitación   
+#   pluvial. Uno de los usos es la itensidad de lluvia instantanea en mm/h
+#   que produce una tormenta una vez ubicada y suponiendo que se 
+#   encontrara suficientemente cerca (a unos 230 km). Es importante 
+#   puntualizar que no se trata de una estimación cualitativa sino de  
+#   una medición que, bajo una calibración cuidadosa, sirva para 
+#   establecer las tasas de precipitación con errores de más menos veinte
+#   por ciento. Algunos radares pueden también indicar el tipo de lluvia,
+#   sin embargo esto aún debe considerarse como en etapa de desarrollo.
+#   
+#   Un radar emite un pulso electromagnético a una cierta frecuencia, 
+#   cuando este pulso choca con algún objeto se produce una disipación de 
+#   la energía hacia todas direcciones y parte de esta energía es devuelta 
+#   al radar. La potencia que el radar capta en distintos instantes se 
+#   corresponde a la energía devuelta por diferentes volúmenes situados a 
+#   lo largo del eje del haz y a distancia creciente de este. El 
+#   procedimiento de emisión-escucha se repite para cada dirección radial 
+#   en la que se realiza un muestreo. De esta forma, fijado un cierto 
+#   ángulo de la antena respecto a la horizontal, usualmente llamado 
+#   elevación, el radar efectúa un barrido de la atmósfera girando 360 
+#   grados y realizando un número determinado de muestreos radiales.
+#
+#   El conjunto de medidas realizado por el radar son usualmente 
+#   integradas en programas que permiten de forma interactiva consultar en 
+#   tiempo real los datos que el radar está recogiendo y manipularlos. 
+#   Muchos de los programas existentes tienen limitaciones o no son 
+#   programas de acceso público. Sin embargo existen proyectos de código 
+#   libre implementadas en python que intentan generar herramientas para 
+#   manipular información proveniente de diferentes marcas de radares 
+#   meteorológicos entre ellos se encuentra wradlib y pyart.
+#
+#   Las funciones implementadas en este archvio intentan aprovechar las 
+#   herramientas de código libre para obtener informació sobre la 
+#   evolución temporal y espacial de la precipitación pluvial ocurrida en 
+#   el estado de Querétaro y adquirida por el radar ubicado en el cerro de 
+#   la Ronchera. 
+#
+#   ======================================================================
+#
+#   Sientanse libres de usar las funciones que más le sirva y si es de su 
+#   interes aumentar las funciones o mejorar las cadenas de procesamiento 
+#   es bienvenida su aporte al código, clone y cree una nueva rama del 
+#   proyecto indicando en esta sección un resumen de lo que fue agregado, 
+#   para revisar e integrar el el código principal.
+#
+#   ======================================================================
+#
+#   Fuentes de Consulta:
+#   * Moshinsky, M. R. (1995). Fundamentos de radares meteorológicos:
+#   aspectos clásicos (primera de dos partes). Tecnología y ciencias
+#   del agua, 10(1), 55-74.
+#   * Heistermann, M., Jacobi, S., and Pfaff, T.: Technical Note: An open 
+#   source library for processing weather radar data (wradlib), Hydrol. 
+#   Earth Syst. Sci., 17, 863-871, doi:10.5194/hess-17-863-2013, 2013
+#   * Helmus, J.J. & Collis, S.M., (2016). The Python ARM Radar Toolkit 
+#   (Py-ART), a Library for Working with Weather Radar Data in the Python 
+#   Programming Language. Journal of Open Research Software. 4(1), p.e25. 
+#   DOI: http://doi.org/10.5334/jors.119
 #
 ########################################################
 
-# Radar modules
+# Radar libraries
 # ================
-from genericpath import isdir
-from numpy.core.fromnumeric import shape
 import wradlib as wl
 import pyart
 
-# Data processing
+# Data processing libraries
 # ================
 import numpy as np
 import numpy.ma as ma
 from collections import OrderedDict
 import datetime
-import re
-from calendar import monthrange
+from calendar import month, monthrange, week
 
-# Graphical modules
+# Graphical libraries
 # ==================
 import matplotlib.pyplot as plt
-
-# System modules
-# =================
-import os
-
 from tqdm import tqdm
 
+# System libraries
+# =================
+import os
 
 # VARIABLES
 # =================
@@ -44,257 +100,37 @@ PARAM_VEL= [0,1]
 PARAM_TRANS=[74,1.6,True]
 ELEVATION= 1
 
-# Processing functions
-#######################
-def radarDataProcessingChain(data:OrderedDict, pia:int=1,elev:list= [], dist:int= -1, shape: int= -1):
-    """ Regresa un archivo dBZ listo para ser usado en alguna aplicación numerica o para graficar 
+# Acquisition and ordering of information
+# ========================================
+def get_dict_of_data_by_month(ldata:list,date_len:int)->dict:
+    """Return a dict of data sorted by months
 
-    Los archivos de radar se encuentran codificados en diferentes formatos, esta es una de las principales limitantes para los usuarios de los radares. wradlib otorga un conjunto de funciones que permiten, leer, filtrar, corregir y presentar de forma gráfica la información contenida en los archivos producidor por un radar. El conjunto de pasos para transformar la información de radar a un formato manipulable es conocido omo "radar data processin chain", estos pasos no son unicos y cada aplicación puede requerir de más o menos pasos, sin embargo podemos destacr:
-        1- Lectura
-        2- Corrección de desorden
-        3- Corrección de la atenuación
-        4- Conversión de reflectividad a dBZ (Z to R)
-        5- Presentación de los datos
-    En esta función nos enfocamos en los puntos 2, 3 y agregamos algunos parámetros utiles para lograr el objetivo de la tesis.
-    More info https://docs.wradlib.org/en/1.1.0/notebooks/basics/wradlib_workflow.html
-
-    Parameters
-    ----------
-    data : OrderedDict
-        Por definir
-    elev : list
-        El usuario puede elegir el rango de elvaciones que mejor le permitan desarrollar la actividad.
-    dist : int
-        La distancia máxima de exploración tambien puede ser definida, para que todos los datos sea homogoneos en tamaño
-    shape : int
-        Por definir
-
-    Outputs:
-    --------
-    dBZ: numpy.narray
-        Por deinir 
-    """    
-    if ( (type(data) != OrderedDict) ):
-        raise "File not expected"
-    else:
-        dBZ= data['data'][1]['sweep_data']['DB_DBZ']['data']
-        dBZ= np.nan_to_num(dBZ, copy=False, nan=0, posinf=0, neginf=0)
-        if ( not elev ):
-            pass
-        if ( dist == -1 ):
-            pass
-        if ( shape == -1 ):
-            pass
-
-    
-    #Desorden (clutter)
-    desorden = wl.clutter.filter_gabella(dBZ, tr1=12,n_p=6, tr2=1.1)
-    dBZ_ord = wl.ipol.interpolate_polar(dBZ,desorden)
-
-    #Atenuación
-    if (pia == 1):
-        pia_kraemer = wl.atten.correct_attenuation_constrained(
-        dBZ_ord,
-        a_max=1.67e-4,
-        a_min=2.33e-5,
-        n_a=100,
-        b_max=0.7,
-        b_min=0.65,
-        n_b=6,
-        gate_length=1.,
-        constraints=[wl.atten.constraint_dbz],
-        constraint_args=[[59.0]])
-    else:
-        pia_kraemer = wl.atten.correct_attenuation_constrained(
-        dBZ_ord,
-        a_max=1.67e-4,
-        a_min=2.33e-5, n_a=100,
-        b_max=0.7, b_min=0.65,
-        n_b=6, gate_length=1.,
-        constraints=
-        [wl.atten.constraint_dbz,
-        wl.atten.constraint_pia],
-        constraint_args=
-        [[59.0],[20.0]])
-
-    pia_kraemer= np.nan_to_num(pia_kraemer, copy=False, nan=0, posinf=0, neginf=0)
-    return dBZ_ord, pia_kraemer
-
-def dBZ_to_V(dBZ,vel,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True):
-    """ Converting Reflectivity to Rainfall
-
-    Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
-
-    More info: https://docs.wradlib.org/en/stable/notebooks/basics/wradlib_get_rainfall.html
-
-    Parameters
-    ----------
-    dBZ : [type]
-        [description]
-    vel : [type]
-        [description]
-    a : float, optional
-        [description], by default 200
-    b : float, optional
-        [description], by default 1.6
-    intervalos : int, optional
-        [description], by default 390
-
-    Returns
-    -------
-    list
-        [description]
-    return(np.multiply(vel,V))
-
+    :param ldata: List of radar data names
+    :type ldata: list
+    :param date_len: Length of date info
+    :type date_len: int
+    :return: A dict of data sorted by months
+    :rtype: dict
     """
-    dBZ= np.nan_to_num(dBZ, copy=False, nan=0, posinf=0, neginf=0)
+    orderDicMon= {'01':[], '02':[], '03':[], '04':[],'05':[], '06':[],
+                    '07':[], '08':[], '09':[], '10':[],'11':[], '12':[]}
 
-    Z = wl.trafo.idecibel(dBZ)
-    R = wl.zr.z_to_r(Z,a=a,b=b)
-    V = wl.trafo.r_to_depth(R,intervalos)
+    for data in ldata:
+        mes= data[date_len+4:date_len+6]
+        orderDicMon[mes].append(data)
+    return orderDicMon
 
-    V= np.nan_to_num(V, copy=False, nan=0, posinf=0, neginf=0)
-    #print('Multiply')
-    #print("Vel: ",vel.data.max())
+def get_dict_of_data_path(path_to_data:str)->dict:
+    """Returns a dictionary of dictionaries that stores the location of the data classified by year, month and day; having this data as the keys.
 
-    #print("Z: ",np.max(Z.data))
-    #print("R: ",np.max(R.data))
-    #print("V: ",np.max(V.data))
-
-    if mult:
-        return np.multiply(vel,V)
-    else:
-        return V
-
-def add_matrix(matrix,data,i=None):
+    :param path_to_data: Path to data radar
+    :type path_to_data: str
+    :return: A dictionary of dictionaries of data radar
+    :rtype: dict
     """
-        Agrega la matriz del acumulado
-    """
-    if i==1:
-        return(data)
-    else:
-        return(np.append(matrix,data).reshape(i,360,1201))
-        
-def ppi(fig,acum,title="Title",xlabel="xlabel",ylabel="ylabel",cmap="viridis",vmin:float=0,vmax:float=120):
-    
-    ax, cf = wl.vis.plot_ppi(acum, cmap=cmap,fig=fig,vmin=vmin,vmax=vmax)
-    #ax, cf = wl.vis.plot_ppi(acum,fig=fig)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    cf = plt.colorbar(cf, shrink=0.8)
-    cf.set_label("mm")
-    #plt.xlim(-128,128)
-    #plt.ylim(-128,128)
-    plt.grid(color="grey")
-    plt.savefig(title+".png")
-    
-def ppi2(path1:str,filename:str,title:str,save:bool=True,psave:str='./',filebase='RAW_NA_000_236_20150507171109',path2='/home/arielcg/QRO_2015/'):
-
-    
-    radar = pyart.io.read_rsl(path2+filebase)
-    level0=radar.extract_sweeps([0])
-
-    acumula= np.load(path1)
-    level0.add_field('acum', acumula)
-    display = pyart.graph.RadarDisplay(level0)
-    fig = plt.figure(figsize=(20, 20)) #Relación 1
-    ax = fig.add_subplot(111)
-    #display.plot('acum', 0, title=title,  vmin=0, vmax=150, colorbar_label='', ax=ax)
-    display.plot('acum', 0, title=title, vmin=0,vmax=0.9,  colorbar_label='', ax=ax)
-    display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
-    #display.set_limits(xlim=(-240, 240), ylim=(-240, 240), ax=ax)#Esto es los rangos del radar
-    if ( save ):
-        plt.savefig(psave+filename+".png")
-        plt.close()
-    else:
-        plt.show()
-        
-# Get info functions
-####################
-def getVel(data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False):
-    """Devuelve un maskedArray de los valores de velocidad
-
-    Dado un objeto radar, se extrae los datos de velocidad que de origen son del tipo masked array. Si lo solicita el usuario, se hace un procesamieno de la información modificando los valores del array.
-
-    Parameters
-    ----------
-    data : OrderedDict
-        Objeto radar
-    maskedVal : float, optional
-        Valor que se le asignara a los valores enmascarados, by default None
-    unmmaskedVal : float, optional
-        Valor que se le asignara a los valores no enmascarados. Sino se le da valor se conservan los originales, by default None
-    processing : bool, optional
-        Define si quiere, o no, cambiar los datos, by default True
-
-    Returns
-    -------
-    numpy masked array
-        masked array de la velocidad
-    """
-    vel= data['data'][1]['sweep_data']['DB_VEL']['data']
-
-    if ( processing ):
-        if ( unmmaskedVal != None ):
-            vel[~vel.mask] = unmmaskedVal
-
-        if ( maskedVal == None ):
-            vel.mask= ma.nomask
-        else:
-            vel.mask= maskedVal
-    
-        return vel
-    else:
-        return vel
-
-def getCoord(fcontent):
-    return(fcontent['product_hdr']['product_end']['latitude'],
-          fcontent['product_hdr']['product_end']['longitude'])
-
-def getElev(fcontent,elev)->bool:
-    #print(fcontent['product_hdr']['product_configuration']['product_name'])
-    #print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean())
-    #print(fcontent['data'][1]['sweep_data']['DB_DBT']['ele_stop'].mean())
-    if (fcontent['data'][1]['sweep_data']['DB_DBT']['ele_start'].mean() <  elev):
-        return(True)
-    else:
-        return(False)
-
-def getRange(fcontent,dist,shape):
-
-    nbins=(fcontent['product_hdr']['product_end']['number_bins'])
-    gate_0 =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
-    gate_nbin =(fcontent['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
-    gate_size=round((gate_nbin - gate_0)/(nbins))
-    range_rad=gate_0 + gate_size * np.arange(nbins, dtype='float32')
-    #print(range_rad[-1],range_rad.shape[0])
-    if (range_rad[-1] == dist) and (range_rad.shape[0] == shape):
-        return(True)
-    else:
-        return(False)
-
-def getVer(fcontent):
-    try:
-        fcontent['product_hdr']['product_end']['iris_version_created']
-    except:
-        raise "Don't found version"
-
-# Get data functions
-####################
-def getWeekNumber(year:int,month:int,day:int)-> int:
-    ''' Devuelve el número de la semana de una fecha en particular
-    '''
-    return datetime.date(int(year), int(month), int(day)).isocalendar()[1]
-
-def getAcumBy(By,Fpath,Dpath)->object:
-    '''Devuelve el acumulado segun el tipo indicado
-    '''
-    pass
-
-def get_names(path:str,n:int=15) -> dict:      
-    orderList= sorted(os.listdir(path))
-    orderDicMon= dicMonth(orderList,n)
+    orderList= sorted(os.listdir(path_to_data))
+    n= get_word_length_until(orderList[0],'_')
+    orderDicMon= get_dict_of_data_by_month(orderList,n)
 
     orderDicData= {}
 
@@ -311,293 +147,324 @@ def get_names(path:str,n:int=15) -> dict:
 
     return orderDicData
 
-def dicMonth(orderList:list,n:int)->dict:
-    """Regresa un diccionario de datos mensuales
+def get_word_length_until(word:str,symbol:str)->int:
+    """Return the length of a word until a defined symbol appears
 
-    Parameters
-    ----------
-    orderList : list
-        Lista de nombres ordenada 
-    n : int
-        Valor inicial de as fechas
-    Returns
-    -------
-    dict
-        Diccionario de datos ordenados de forma mensual
-    """ 
-    orderDicMon= {'01':[], '02':[], '03':[], '04':[],'05':[], '06':[],
-                    '07':[], '08':[], '09':[], '10':[],'11':[], '12':[]}
-
-    for data in orderList:
-        mes= data[n+4:n+6]
-        orderDicMon[mes].append(data)
-    return orderDicMon
-
-def getName(basename:str)->int:
-    """Regresa la posición inicial de la fecha según el nombre dado
-
-    Parameters
-    ----------
-    basename : str
-        Nombre base de los archivos que serán identificados
-
-    Returns
-    -------
-    int
-        Posición inicial de las fechas en el archivo
-    """    
-    if basename[:15] == 'RAW_NA_000_236_':
-        return 15
-    else:
-        return 0
-
-def read(filename:str,path:str= 'default'):
-    """ Lee un archivo de radar tipo IRIS.
-
-    Tiene como entrada la lectura de un archivo existente en el path para después usando las funciones de lectura de archivos IRIS que tienen la libreria wradlib, regresa un objeto radar (o diccionario) que continen toda la información del archivo leido.
-
-    Es recomendable usar antes la función getData(path,basename) y reciclar la varaible path.
-
-    Parameters
-    ----------
-    filenae : str
-        Nombre del archivo que será leido    
-    path : str, optional
-        Ruta donde se encuentren los archivos de no definir una entrada se tomara el directorio de trabajo, by default 'default'
-
-    Outputs
-    -------
-    OrderDict:
-        Un diccionario ordenado que contiene toda la información generada por el radar en un cierto intervalo de tiempo.
-    """    
-    if ( path== 'default' ):
-        path= os.getcwd()
-    #sizeof= os.stat(path+filename).st_size / (1024 * 1024)
-    return wl.io.iris.read_iris(path+filename)
-
-### Funciones de Ejecucion
-# ===================
-def radar2numpy(filename,fpath,elevation,l_range,l_vel,l_params,retrunV:bool=True):
-    rd= read(filename,fpath)
-    if ( getRange(rd,l_range[0],l_range[1]) and getElev(rd,elevation) ):
-        vel= getVel(rd,l_vel[0],l_vel[1])
-        dBZ_ord, pia= radarDataProcessingChain(rd)
-        if ( retrunV ):
-            V= dBZ_to_V(dBZ_ord+pia,vel,l_params[0],l_params[1],l_params[2])
-            return V
-        return dBZ_ord+pia
-
-def get_n(word:str):
+    :param word: Word to measure
+    :type word: str
+    :param symbol: Symbol to stop the measure
+    :type symbol: str
+    :return: The length of a word until a defined symbol appears
+    :rtype: int
+    """
     n= len(word) - 1
     while (True):
-        if ( word[n] == '_' ):
+        if ( word[n] == symbol ):
             break
         else:
             n-= 1
     return n+1
 
-def get_unique(names)->list:
-    n= get_n(names[0])
-    basename= []
-    for name in names:
-        if ( name[:n] not in basename ):
-            basename.append(name[:n])
-            
-    return basename
+def get_basenames_of(words:list,word_length:int)->list:
+    """Return the basenames of radar data without the date information.
 
-def getDataByDay(year,month,day,fpath,elevation,l_range,l_vel,l_params,basename):     
-    name= basename+year+month+day
-    names= os.listdir(fpath)
+    :param words: Names of all data radar.
+    :type words: list
+    :param word_length: Number of positions where date appears.
+    :type word_length: int
+    :return: basenames of radar data without the date information.
+    :rtype: list
+    """
+    basenames=[]
+    for word in words:
+        if ( word[:word_length] not in basenames ):
+            basenames.append(word[:word_length])
+    return basenames
+
+# Data reading and processing
+# ========================================
+def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->np.ndarray:
+    """Converting Reflectivity to Rainfall
+
+    Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
+
+    More info: https://docs.wradlib.org/en/stable/notebooks/basics/wradlib_get_rainfall.html
+
+    :param dBZ: [description]
+    :type dBZ: ndarray
+    :param vel: [description]
+    :type vel: [type]
+    :param a: [description], defaults to 200
+    :type a: float, optional
+    :param b: [description], defaults to 1.6
+    :type b: float, optional
+    :param intervalos: [description], defaults to 390
+    :type intervalos: int, optional
+    :param mult: [description], defaults to True
+    :type mult: bool, optional
+    :return: [description]
+    :rtype: ndarray
+    """
+    Z = wl.trafo.idecibel(dBZ)
+    R = wl.zr.z_to_r(Z,a=a,b=b)
+    depth = wl.trafo.r_to_depth(R,intervalos)
+
+    if mult:
+        vel=data_cleaner(vel)
+        return np.multiply(vel,depth)
+    else:
+        return depth
+
+def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1)->tuple:
+    """Return a tuple of data after a processed
+
+    In order to use weather radar observations for quantitative studies he data has to be carefully processed in order to account for typical errors sources such as ground echoes (clutter), attenuation of the radar signal, or uncertainties in the Z/R relationship.
+    Read more: https://docs.wradlib.org/en/1.1.0/notebooks/basics/wradlib_workflow.html
+
+    :param iris_data: A iris data after read by wradlib
+    :type iris_data: OrderedDict
+    :param pia_type: Type of pia processing
+    :type pia_type: str
+    :return: A tuple of data after a processed
+    :rtype: tuple
+    """
+    reflectivity= get_reflectivity(iris_data)
+    reflectivity= data_cleaner(reflectivity)
     
-    names= list(filter(lambda x: x if name==x[:len(name)] else 0,names))
-    names= list(set(names))
+    dBZ_ord = clutter_processing(reflectivity,
+                                         tr1=tr1,n_p=n_p, tr2=tr2)
 
-    try:
-        names.pop(names.index(0))
-    except:
-        pass
+    if ( pia_type == 'default' ):
+        pia= pia_processing(dBZ_ord)
+    else:
+        pia= pia_processing(
+            dBZ_ord,
+            a_max=1.67e-4,
+            a_min=2.33e-5, 
+            n_a=100,
+            b_max=0.7,
+            b_min=0.65,
+            n_b=6, 
+            gate_length=1.,
+            constraints= [wl.atten.constraint_dbz,wl.atten.constraint_pia],
+            constraint_args=[[59.0],[20.0]])
+    pia= data_cleaner(pia)
+    return (dBZ_ord,pia)
 
+def clutter_processing(reflectivity:np.ndarray,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
+    """ Return a np.ndarray after a clutter filter
+
+    Clutter filter published by Gabella et al., 2002 is applied
+
+    :param reflectivity: [description]
+    :type reflectivity: np.ndarray
+    :param tr1: [description], defaults to 12
+    :type tr1: float, optional
+    :param n_p: [description], defaults to 12
+    :type n_p: float, optional
+    :param tr2: [description], defaults to 1.1
+    :type tr2: float, optional
+    :return: [description]
+    :rtype: [type]
+    """
+    desorden = wl.clutter.filter_gabella(reflectivity,
+                                         tr1=tr1,n_p=n_p, tr2=tr2)
+    return wl.ipol.interpolate_polar(reflectivity,desorden)
+def pia_processing(dBZ_order:np.ndarray,a_max:float=1.67e-4,
+                        a_min:float=2.33e-5,
+                        n_a:float=100,
+                        b_max:float=0.7,
+                        b_min:float=0.65,
+                        n_b:float=6,
+                        gate_length:float=1,
+                        constraints:list=[wl.atten.constraint_dbz],
+                        constraint_args:list=[[59.0]])->np.ndarray:
+    """Return values to correct the reflectivity values
+
+    :param dBZ_order: Reflectivity after clutter
+    :type dBZ_order: np.ndarray
+    :param a_max: [description], defaults to 1.67e-4
+    :type a_max: float, optional
+    :param a_min: [description], defaults to 2.33e-5
+    :type a_min: float, optional
+    :param n_a: [description], defaults to 100
+    :type n_a: float, optional
+    :param b_max: [description], defaults to 0.7
+    :type b_max: float, optional
+    :param b_min: [description], defaults to 0.65
+    :type b_min: float, optional
+    :param n_b: [description], defaults to 6
+    :type n_b: float, optional
+    :param gate_length: [description], defaults to 1
+    :type gate_length: float, optional
+    :param constraints: [description], defaults to [wl.atten.constraint_dbz]
+    :type constraints: list, optional
+    :param constraint_args: [description], defaults to [[59.0]]
+    :type constraint_args: list, optional
+    :return: [description]
+    :rtype: np.ndarray
+    """
+    return wl.atten.correct_attenuation_constrained(
+        dBZ_order,
+        a_max=a_max,
+        a_min=a_min,
+        n_a=n_a,
+        b_max=b_max,
+        b_min=b_min,
+        n_b=n_b,
+        gate_length=gate_length,
+        constraints=constraints,
+        constraint_args=constraint_args)
         
-    acum= 0
-    for name in names:
-        acum+= radar2numpy(name,fpath,elevation,l_range,l_vel,l_params)
-    return acum
-        
-def get_strlistofnubers(n:int):
-    l= []
-    for i in range(1,n+1):
-        if ( i < 10 ):
-            l.append('0'+str(i))
+def data_cleaner(data:np.ndarray,nan:float=0,posinf:float=0,neginf:float=0)->np.ndarray:
+    """Return a np.ndarray change the nan an inf values
+
+    :param data: Numpy array of data
+    :type data: np.ndarray
+    :param nan: Values to nan, defaults to 0
+    :type nan: float, optional
+    :param posinf: Values to -inf, defaults to 0
+    :type posinf: float, optional
+    :param neginf: Values to +inf, defaults to 0
+    :type neginf: float, optional
+    :return: A np.ndarray change the nan an inf values
+    :rtype: np.ndarray
+    """
+    return np.nan_to_num(data, copy=False, nan=nan, posinf=posinf, neginf=neginf)
+
+def get_range(iris_data:OrderedDict):
+    nbins=(iris_data['product_hdr']['product_end']['number_bins'])
+    gate_0 =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
+    gate_nbin =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
+    gate_size=round((gate_nbin - gate_0)/(nbins))
+    return gate_0 + gate_size * np.arange(nbins, dtype='float32')
+
+def get_version(iris_data:OrderedDict)->str:
+    return iris_data['product_hdr']['product_end']['iris_version_created']
+
+def get_elevation(iris_data:OrderedDict)->np.ndarray:
+    return iris_data['data'][1]['sweep_data']['DB_DBT']['ele_start']
+
+def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False)->np.ndarray:
+    """Return the velocity of a iris data.
+
+    :param iris_data: [description]
+    :type iris_data: OrderedDict
+    :param maskedVal: [description], defaults to None
+    :type maskedVal: float, optional
+    :param unmmaskedVal: [description], defaults to None
+    :type unmmaskedVal: float, optional
+    :param processing: [description], defaults to False
+    :type processing: bool, optional
+    :return: [description]
+    :rtype: np.ndarray
+    """
+    vel= iris_data['data'][1]['sweep_data']['DB_VEL']['data']
+
+    if ( processing ):
+        if ( unmmaskedVal != None ):
+            vel[~vel.mask] = unmmaskedVal
+
+        if ( maskedVal == None ):
+            vel.mask= ma.nomask
         else:
-            l.append(str(i))
-    return l
+            vel.mask= maskedVal
+    
+        return vel
+    else:
+        return vel
 
-def mkdir(name,path):
+def get_reflectivity(iris_data:OrderedDict)->np.ndarray:
+    """Return the reflectivity of a iris data.
+
+    Precipitation intensity is measured by a ground-based radar that bounces radar waves off of precipitation. The Local Radar base reflectivity product is a display of echo intensity (reflectivity) measured in dBZ (decibels).
+
+
+    :param iris_data: [description]
+    :type iris_data: OrderedDict
+    """
+    return iris_data['data'][1]['sweep_data']['DB_DBZ']['data']
+
+def get_coordinates(iris_data:OrderedDict)->tuple:
+    """Return the lat and lon of a iris data
+
+    :param iris_data: [description]
+    :type iris_data: OrderedDict
+    :return: [description]
+    :rtype: tuple
+    """
+    return(iris_data['product_hdr']['product_end']['latitude'],
+          iris_data['product_hdr']['product_end']['longitude'])
+
+def get_iris_data(path_iris:str)->dict:
+    """Return an wradlib file type of iris file
+
+    :param path_iris: Path to iris file
+    :type path_iris: str
+    :return: Dictionary with data and metadata retrieved from file.
+    :rtype: OrderedDict
+    """
+    return wl.io.iris.read_iris(path_iris)
+
+# Automatic processing
+# ========================================
+def mkdir(path:str,name:str):
     list_dir= os.listdir(path)
     if ( name not in list_dir ):
         name= path+name
         os.mkdir(name)
 
-def saveday(path:str,save:str,year:str):
-    """Guarda en un archivo npz la matriz que contiene la informacion de la intensidad de precipitacion. Para lograr esto se necesita la ruta donde se encuentran los datos de radar. La ruta general donde se quiera almacenar la información y el año sobre el cual se esta realizando el analisis.
-
-    :param files: [description]
-    :type files: str
-    :param save: [description]
-    :type save: str
-    :param year: [description]
-    :type year: str
-    """
-    acum_daily=0
-    names= sorted(os.listdir(path))         
-    basenames= get_unique(names)
-
-    mkdir(year,save)
-
-    if ( len(basenames) > 1 ):
-        print('basenames:',basenames)
-        #Por hacer funcion que haga el acumulado cuando se tenga diferente nomenclatura en el nombre
+def int_to_str(number:int)->str:
+    if ( number < 9 ):
+        return '0'+str(number)
     else:
-        for month in MONTHS_LIST:
-            DAYS_LIST= get_strlistofnubers(monthrange(int(year), int(month))[1])
-            for day in tqdm(DAYS_LIST):
-                acum_daily= getDataByDay(year,month,day,path,ELEVATION,SCANN_RANGE,PARAM_VEL,PARAM_TRANS,basenames[0])
+        return str(number)
 
-                if ( type(acum_daily) != int ):
-                    mkdir(month,save+year+'/')
-                    n_week= getWeekNumber(year,month,day)
-                    n_week= '0' + str(n_week) if n_week < 10 else str(n_week)
-                    mkdir(n_week,save+year+'/'+month+'/')
+def generate_directory_structure(dict_of_data_path:dict,year:str,path:str):
+    mkdir(path,year)
+    path= path+year+'/'
+    months= dict_of_data_path.keys()
+    for month in months:
+        if ( dict_of_data_path[month] ):
+            mkdir(path,month)
+        days= dict_of_data_path[month].keys()
+        if ( days ):
+            for day in days:
+                n_week= int_to_str(get_week_number(year,month,day))
+                mkdir(path+month+'/',n_week)
 
-                    try:
-                        spath= save+year+'/'+month+'/'+n_week
-                        np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum_daily.data)
+def get_week_number(year:str,month:str,day:str)-> int:
+    return datetime.date(int(year), int(month), int(day)).isocalendar()[1]
 
-                    except Exception as e:
-                        print(e)
-                        print("Error to export data_{}_{}_{}".format(year,month,day))
-def find(name, path):
-    for _, _, files in os.walk(path):
-        if name in files:
-            #return os.path.join(root, name)
-            return True
-        else:
-            return False
+def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year:str,month:str,day:str):
+    days= dict_of_data[month].keys()
+    acum= 0
+    if ( days ):
+        data= dict_of_data[month][day]
+        if ( data ):
+            for d in data:
+                iris=get_iris_data(path_to_data+d)
+                dBZ,pia= data_processing_chain(iris)
+                acum+= reflectivity_to_rainfall(dBZ+pia,
+                                    get_velocity(iris))
+            n_week= int_to_str(get_week_number(year,month,day))
+            path_to_save= path_to_save+year+'/'+month+'/'+n_week+'/'
+            np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum)
 
-def saveweek(root):
-    years= os.listdir(root)
-    years= [year for year in years if os.path.isdir(root+year)]
-    for year in years:
-        meses= os.listdir(root+year)
-        meses= [mes for mes in meses if os.path.isdir(root+year+'/'+mes)]
-        for mes in meses:
-            semanas= os.listdir(root+year+'/'+mes)
-            semanas= [semana for semana in semanas if os.path.isdir(root+year+'/'+mes+'/'+semana)]
-            for semana in semanas:
-                dias= os.listdir(root+year+'/'+mes+'/'+semana)
-                acum= 0
-                for dia in dias:
-                    data= np.load(root+year+'/'+mes+'/'+semana+'/'+dia)
-                    acum+= data['data']
-                try:
-                    
-                    spath= root+year+'/'+mes
-                    np.savez_compressed(spath+"/radar_{}_{}_{}.npz".format(year,mes,semana),data=acum)
-                except Exception as e:
-                    print(e)
-                    print("Error to export data_{}_{}_{}".format(year,mes,semana))
+# Plotting
+# ========================================
+class create_radar_visualizator:
+    def __init__(self):
+        pass
 
-def savemonth(root):
-    years= os.listdir(root)
-    years= [year for year in years if os.path.isdir(root+year)]
-    for year in years:
-        meses= os.listdir(root+year)
-        meses= [mes for mes in meses if os.path.isdir(root+year+'/'+mes)]
-        for mes in meses:
-            semanas= os.listdir(root+year+'/'+mes)
-            semanas= [semana for semana in semanas if not os.path.isdir(root+year+'/'+mes+'/'+semana)]
-            acum= 0
-            for semana in semanas:
-                data= np.load(root+year+'/'+mes+'/'+semana)
-                acum+= data['data']
-            try:
-                spath= root+year
-                np.savez_compressed(spath+"/radar_{}_{}.npz".format(year,mes),data=acum)
-            except Exception as e:
-                print(e)
-                print("Error to export data_{}_{}".format(year,mes))
-
-
-def saveyear(root):
-    years= os.listdir(root)
-    years= [year for year in years if os.path.isdir(root+year)]
-    for year in years:
-        meses= os.listdir(root+year)
-        meses= [mes for mes in meses if not os.path.isdir(root+year+'/'+mes)]
-        acum= 0
-        for mes in meses:
-            data= np.load(root+year+'/'+mes)
-            acum+= data['data']
-        try:
-            spath= root
-            np.savez_compressed(spath+"/radar_{}.npz".format(year),data=acum)
-        except Exception as e:
-            print(e)
-            print("Error to export data_{}".format(year))
-
-def makepath(files,path:str='.',bo:bool=True):
-    if ( bo ):
-        return [path+f for f in files if not os.path.isdir(path+f)]
-    else:
-        return [path+f+'/' for f in files if os.path.isdir(path+f)]
-
-def path2file(sdt:str,path:str,file=True):
-
-    sdt= sdt.upper()
-    files= os.listdir(path)
-    data= []
-    if ( sdt ==  'YEAR'):
-        return makepath(files,path,file)
-
-    elif ( sdt == 'MONTH' ):
-        ypath= path2file('YEAR',path,False)
-        for pyear in ypath:
-            files= os.listdir(pyear)
-            data.extend(makepath(files,pyear,file))
-        return data
-
-    elif ( sdt == 'WEEK' ):
-        #Quiero entrar a cada mes de cada a;o
-        mpath= path2file('MONTH',path,False)
-        for pmonth in mpath:
-            files= os.listdir(pmonth)
-            data.extend(makepath(files,pmonth,file))
-        return data
-        #for pmonth in mpath:
-            #files= os
-
-    elif ( sdt == 'DAILY' ):
-        dpath= path2file('WEEK',path,False)
-        for pday in dpath:
-            files= os.listdir(pday)
-            data.extend(makepath(files,pday,file))
-        return data
-    else:
-        raise('Please type YEAR, MONTH or WEEK')
-
-def plot_data(sdt,files,path):
-
-    sdt= sdt.upper()
-    for f in files:       
-        if ( sdt == 'YEAR'):
-            name=  f[-8:-4]
-        elif ( sdt == 'MONTH' ):
-            name=  f[-11:-4]
-        elif ( (sdt == 'DAILY') or (sdt == 'WEEK') ):
-            name=  f[-20:-4]
-        else:
-            raise('Please type YEAR, MONTH or WEEK')
+    def ppi(self,radar_data:np.ndarray,vlim:list,librery:str='pyart'):
+        """PPI, Plan Position Indicator, correspondiente con la reflectividad registrada en cada una de las elevaciones y que se proyecta sobre el plano horizontal"""
         
-        ppi2(f,'figure_'+ name,'Acumulado_'+name,save=True,psave=path)
-            
-        
+        return 0
+
+    def capi(self):
+        """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que se quiere generar el CAPPI"""
+        pass
+
+    def rhi(self):
+        """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
