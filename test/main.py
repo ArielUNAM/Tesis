@@ -1,27 +1,29 @@
-from os import path
 import sys
+
+from numpy import load
+
 #sys.path.insert(1,'/src/botddigger')
 sys.path.append('../')
 
 import src.pyRadar.pyRadar as pr
-from tqdm import tqdm
 
 path2root= "/home/arielcg/"
 #path2data= {'2015':'QRO_2015/','2016':'QRO_2016/','2017':'QRO_2017/'}
-path2data= {'2015':'QRO_2015/'}
+dict2data= {'2015':'QRO_2015/'}
 path2save= "/home/arielcg/Documentos/Tesis/src/data/radar/"
+path2fig= '/home/arielcg/Documentos/Tesis/src/data/img/'
 
-months= ['01','02','03','04','05']
+l= ['/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_10.npz','/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_11.npz','/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_12.npz','/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_13.npz']
 def main():
-    for year, path in path2data.items():
-        dic_of_data= pr.get_dict_of_data_path(path2root+path)
-        pr.generate_directory_structure(dic_of_data,year,path2save)
-        #for month in dic_of_data.keys():
-        for month in tqdm(months):
-            days= dic_of_data[month].keys()
-            if ( days ):
-                for day in days:
-                    pr.generate_daily_acum(path2root+path,dic_of_data,path2save,year,month,day)
+    #pr.acum_daily(path2root,path2save,dict2data)
+    #pr.acum_week(path2save,'2015','03')
+    name=0
+    ploter= pr.create_radar_visualizator()
+    for dt in l:
+        name+=1
+        ploter.ppi_art(str(name),load(dt),[0,200],path2fig)
+    
+
         
 if __name__ == '__main__':
     main()

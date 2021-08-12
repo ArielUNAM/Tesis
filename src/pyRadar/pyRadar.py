@@ -270,6 +270,7 @@ def clutter_processing(reflectivity:np.ndarray,tr1:float=12,n_p:float=12,tr2:flo
     desorden = wl.clutter.filter_gabella(reflectivity,
                                          tr1=tr1,n_p=n_p, tr2=tr2)
     return wl.ipol.interpolate_polar(reflectivity,desorden)
+
 def pia_processing(dBZ_order:np.ndarray,a_max:float=1.67e-4,
                         a_min:float=2.33e-5,
                         n_a:float=100,
@@ -443,13 +444,95 @@ def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year
         data= dict_of_data[month][day]
         if ( data ):
             for d in data:
-                iris=get_iris_data(path_to_data+d)
+                iris= get_iris_data(path_to_data+d)
                 dBZ,pia= data_processing_chain(iris)
                 acum+= reflectivity_to_rainfall(dBZ+pia,
-                                    get_velocity(iris))
+                                    get_velocity(iris),mult=False)
             n_week= int_to_str(get_week_number(year,month,day))
             path_to_save= path_to_save+year+'/'+month+'/'+n_week+'/'
             np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum)
+
+def acum_daily(path2root:str,path2save:str,dict2data:dict):
+    months= ['01','02','03']
+    for year, path in dict2data.items():
+        dic_of_data= get_dict_of_data_path(path2root+path)
+        generate_directory_structure(dic_of_data,year,path2save)
+        #for month in dic_of_data.keys():
+        for month in tqdm(months):
+            days= dic_of_data[month].keys()
+            if ( days ):
+                for day in days:
+                    generate_daily_acum(path2root+path,dic_of_data,path2save,year,month,day)
+
+def acum_by_path(path2list:str):
+    acum= 0
+    if ( os.path.isdir(path2list) ):
+        data= os.listdir(path2list)
+        if ( data ):
+            for dt in data:
+                acum+= np.load(path2list + dt)['data']
+            return acum
+
+def acum_week(path2save:str,year:str,month:str='',week:str=''):
+    path= path2save+year+'/'
+    if not bool(month):
+        months= sorted(os.listdir(path))
+        if not bool(week):
+            weeks=[]
+            aux_week= ''
+            for month in months:
+                path_month= path+month+'/'
+                weeks= sorted(os.listdir(path_month))
+                for week in weeks:
+                    if ( aux_week == week ):
+                        path_week= path_month+week+'/'
+                        acum_week+= acum_by_path(path_week)
+                        aux_week= week
+                        np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
+                    else:
+                        if bool(aux_week):
+                            np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,aux_week),data=acum_week)
+                        path_week= path_month+week+'/'
+                        acum_week= acum_by_path(path_week)
+                        aux_week= week
+                np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
+        else:
+            data= []
+            acum_week=0
+            for month in months:
+                path_month= path+month+'/'
+                weeks= os.listdir(path_month) 
+                if ( week in weeks ):
+                    path_week= path_month+week+'/'
+                    data.append(path_week)
+                for dt in data:    
+                    acum_week+= acum_by_path(dt)
+                np.savez_compressed(path_week+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
+    else:
+        if not bool(week):
+            aux_week= ''
+            path_month= path+month+'/'
+            weeks= sorted(os.listdir(path_month))
+            for week in weeks:
+                if ( aux_week == week ):
+                    path_week= path_month+week+'/'
+                    acum_week+= acum_by_path(path_week)
+                    aux_week= week
+                    np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
+                else:
+                    if bool(aux_week):
+                        np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,aux_week),data=acum_week)
+                    path_week= path_month+week+'/'
+                    acum_week= acum_by_path(path_week)
+                    aux_week= week
+            np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
+        else:
+            path_month= path+month+'/'
+            weeks= os.listdir(path_month) 
+            if ( week in weeks ):
+                path_week= path_month+week+'/'
+                acum_week= acum_by_path(path_week)
+                np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
 
 # Plotting
 # ========================================
@@ -457,10 +540,34 @@ class create_radar_visualizator:
     def __init__(self):
         pass
 
-    def ppi(self,radar_data:np.ndarray,vlim:list,librery:str='pyart'):
+    def ppi_wrl(self,name,radar_data:np.ndarray,vlim:list,path:str):
         """PPI, Plan Position Indicator, correspondiente con la reflectividad registrada en cada una de las elevaciones y que se proyecta sobre el plano horizontal"""
+        fig= plt.figure()
+        _,cf= wl.vis.plot_ppi(radar_data,
+                                cmap='viris',fig=fig,   
+                                vmin=vlim[0], vmax=vlim[1])
+        plt.xlabel("xlabel")
+        plt.ylabel("ylabel")
+        plt.title("title")
+        cf= plt.colorbar(cf, shrink=0.8)
+        cf.set_label("mm")
+        plt.grid(color="gray")
+        plt.savefig(path+name+"ppi_wrl.png")
         
-        return 0
+
+    def ppi_art(self,name,radar_data,vlim,path):
+        fig= plt.figure()
+        radar= pyart.io.read_rsl('/home/arielcg/QRO_2015/'+'RAW_NA_000_236_20150711000109')
+        level0= radar.extract_sweeps([0])
+
+        level0.add_field('acum',radar_data)
+        display= pyart.graph.RadarDisplay(level0)
+        ax= fig.add_subplot(111)
+        display.plot('acum', 0, title="title", vmin=vlim[0],vmax=vlim[1],  colorbar_label='', ax=ax)
+        display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
+        plt.savefig(path+name+"ppi_art.png")
+
+        
 
     def capi(self):
         """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que se quiere generar el CAPPI"""
