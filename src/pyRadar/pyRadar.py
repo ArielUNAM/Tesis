@@ -72,8 +72,11 @@
 
 # Radar libraries
 # ================
+from wradlib.util import get_wradlib_data_file
+import wradlib.georef as georef
 import wradlib as wl
 import pyart
+
 
 # Data processing libraries
 # ================
@@ -81,12 +84,14 @@ import numpy as np
 import numpy.ma as ma
 from collections import OrderedDict
 import datetime
-from calendar import month, monthrange, week
+import pandas as pd
 
 # Graphical libraries
 # ==================
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from pyproj import CRS
+from pyproj import Transformer  
 
 # System libraries
 # =================
@@ -99,6 +104,7 @@ SCANN_RANGE= [236000,921]
 PARAM_VEL= [0,1]
 PARAM_TRANS=[74,1.6,True]
 ELEVATION= 1
+FILEBASE= 'src/data/base/sacest2.csv'
 
 # Acquisition and ordering of information
 # ========================================
@@ -409,19 +415,63 @@ def get_iris_data(path_iris:str)->dict:
 
 # Automatic processing
 # ========================================
+def get_list_dir(path:str,isDir=True)->list:
+    """Return a list whit all directories in the path. If false then retun all files that are'nt a directory
+
+    :param path: Path where realize the searh
+    :type path: str
+    :param isDir: If true find directories else files, defaults to True
+    :type isDir: bool, optional
+    :return: A list of directories names or files names
+    :rtype: list
+    """
+    list_names= os.listdir(path)
+    if ( isDir ):
+        return [name for name in list_names if os.path.isdir(name)]
+    else:
+        return [name for name in list_names if not os.path.isdir(name)]
+    
 def mkdir(path:str,name:str):
-    list_dir= os.listdir(path)
+    """Make a directory on the indicated path with the indicated name
+
+    :param path: Path where the direct gona make
+    :type path: str
+    :param name: Dir name
+    :type name: str
+    """
+    list_dir= get_list_dir(path)
     if ( name not in list_dir ):
-        name= path+name
-        os.mkdir(name)
+        os.mkdir(path+name)
 
 def int_to_str(number:int)->str:
+    """Return a str type number
+
+    :param number: A number
+    :type number: int
+    :return: A number
+    :rtype: str
+    """
     if ( number < 9 ):
         return '0'+str(number)
     else:
         return str(number)
 
 def generate_directory_structure(dict_of_data_path:dict,year:str,path:str):
+    """In a specific directory path generate a directory estrucuture in base a directory strucutrure like 
+
+        /path
+        |-/year
+        |   |-/month
+        |   |   |-/week
+        |   |   |   |-numpyfile
+
+    :param dict_of_data_path: A dicrectory strucuture
+    :type dict_of_data_path: dict
+    :param year: A year
+    :type year: str
+    :param path: A path
+    :type path: str
+    """
     mkdir(path,year)
     path= path+year+'/'
     months= dict_of_data_path.keys()
@@ -435,9 +485,35 @@ def generate_directory_structure(dict_of_data_path:dict,year:str,path:str):
                 mkdir(path+month+'/',n_week)
 
 def get_week_number(year:str,month:str,day:str)-> int:
+    """Return the number of a week
+
+    :param year: A year
+    :type year: str
+    :param month: A month
+    :type month: str
+    :param day: A day
+    :type day: str
+    :return: Number of week
+    :rtype: int
+    """
     return datetime.date(int(year), int(month), int(day)).isocalendar()[1]
 
 def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year:str,month:str,day:str):
+    """Realize the daily sum of data radar (located in path to data) and save in path_to_save in a npz format
+
+    :param path_to_data: Data located
+    :type path_to_data: str
+    :param dict_of_data: A file structure dict
+    :type dict_of_data: dict
+    :param path_to_save: Path to save acum data
+    :type path_to_save: str
+    :param year: A year
+    :type year: str
+    :param month: A month
+    :type month: str
+    :param day: A day
+    :type day: str
+    """
     days= dict_of_data[month].keys()
     acum= 0
     if ( days ):
@@ -453,27 +529,53 @@ def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year
             np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum)
 
 def acum_daily(path2root:str,path2save:str,dict2data:dict):
-    months= ['01','02','03']
+    """Generate a daily acumalted from 
+
+    :param path2root: [description]
+    :type path2root: str
+    :param path2save: [description]
+    :type path2save: str
+    :param dict2data: [description]
+    :type dict2data: dict
+    """
     for year, path in dict2data.items():
         dic_of_data= get_dict_of_data_path(path2root+path)
         generate_directory_structure(dic_of_data,year,path2save)
-        #for month in dic_of_data.keys():
-        for month in tqdm(months):
+        for month in dic_of_data.keys():
+        #for month in tqdm(months):
             days= dic_of_data[month].keys()
             if ( days ):
                 for day in days:
                     generate_daily_acum(path2root+path,dic_of_data,path2save,year,month,day)
 
-def acum_by_path(path2list:str):
+def acum_by_path(path2list:str)->np.ndarray:
+    """Return a numpy.ndarray of the acum data
+
+    :param path2list: Path where the npz data are
+    :type path2list: str
+    :return: A numpy.ndarray
+    :rtype: np.ndarray
+    """
     acum= 0
     if ( os.path.isdir(path2list) ):
-        data= os.listdir(path2list)
+        data= get_list_dir(path2list,False)
         if ( data ):
             for dt in data:
                 acum+= np.load(path2list + dt)['data']
             return acum
 
 def acum_week(path2save:str,year:str,month:str='',week:str=''):
+    """Generate a week acumated
+
+    :param path2save: [description]
+    :type path2save: str
+    :param year: [description]
+    :type year: str
+    :param month: [description], defaults to ''
+    :type month: str, optional
+    :param week: [description], defaults to ''
+    :type week: str, optional
+    """
     path= path2save+year+'/'
     if not bool(month):
         months= sorted(os.listdir(path))
@@ -534,13 +636,41 @@ def acum_week(path2save:str,year:str,month:str='',week:str=''):
                 acum_week= acum_by_path(path_week)
                 np.savez_compressed(path_month+"/radar_{}_{}_{}.npz".format(year,month,week),data=acum_week)
 
+def acum_month(path2save:str,year:str,month:str=''):
+    path= path2save+year+'/'
+    months= sorted(os.listdir(path))
+    months= [month for month in months if os.path.isdir(path+month)]
+    for month in months:
+        acum_month= 0
+        path_month= path+month+'/'
+        weeks= get_list_dir(path_month)
+        for week in weeks:
+            path_week= path_month+week+'/'
+            acum_month+= acum_by_path(path_week)
+        np.savez_compressed(path+"/radar_{}_{}.npz".format(year,month),data=acum_month)
+
+def acum_year(path2save:str,year:str=''):
+    if ( year ):
+        acum_year=0 
+        path_year= path2save+year+'/'
+        acum_year= acum_by_path(path_year)
+        np.savez_compressed(path2save+"/radar_{}.npz".format(year),data=acum_month)
+
+    else:
+        years= get_list_dir(path2save)
+        for year in years:
+            acum_year=0 
+            path_year= path2save+year+'/'
+            acum_year= acum_by_path(path_year)
+            np.savez_compressed(path2save+"/radar_{}.npz".format(year),data=acum_month)
+
 # Plotting
 # ========================================
-class create_radar_visualizator:
-    def __init__(self):
+class create_radar_manipulator(object):
+    def __init__(self)->None:
         pass
 
-    def ppi_wrl(self,name,radar_data:np.ndarray,vlim:list,path:str):
+    def plot_ppi_wrl(self,name,radar_data:np.ndarray,vlim:list,path:str):
         """PPI, Plan Position Indicator, correspondiente con la reflectividad registrada en cada una de las elevaciones y que se proyecta sobre el plano horizontal"""
         fig= plt.figure()
         _,cf= wl.vis.plot_ppi(radar_data,
@@ -554,8 +684,7 @@ class create_radar_visualizator:
         plt.grid(color="gray")
         plt.savefig(path+name+"ppi_wrl.png")
         
-
-    def ppi_art(self,name,radar_data,vlim,path):
+    def plot_ppi_art(self,name,radar_data,vlim,path):
         fig= plt.figure()
         radar= pyart.io.read_rsl('/home/arielcg/QRO_2015/'+'RAW_NA_000_236_20150711000109')
         level0= radar.extract_sweeps([0])
@@ -567,11 +696,35 @@ class create_radar_visualizator:
         display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
         plt.savefig(path+name+"ppi_art.png")
 
-        
-
-    def capi(self):
+    def plot_capi(self):
         """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que se quiere generar el CAPPI"""
         pass
 
-    def rhi(self):
+    def plot_rhi(self):
         """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
+
+    def acum_over_a_point(self,acum_data:np.ndarray,    latitud:str,longitud:str,filebase:str=FILEBASE,code:int=4485,nnear:int=1):
+        """get acumulated precipitation over a specific coords"""
+        crs= CRS.from_epsg(code)
+        df= pd.read_csv(filebase,delimiter=',')
+        X, Y= get_project_trasnform(df,Transformer.from_crs(crs.geodetic_crs,crs))
+        az= np.linspace(0,360,361)[0:-1]
+        proj= georef.epsg_to_osr(code)
+
+        site_coords= get_coordinates(iris_data)
+        range_rad= get_range(iris_data)
+
+        polar_neighbours= wl.verify.PolarNeighbours(range_rad, az, site_coords, proj, X, Y, nnear=nnear)
+
+        radatr_at_gages= polar_neighbours.extract(acum_data)
+
+        return radatr_at_gages
+
+def get_project_trasnform(df,proj):
+    x=y=[]
+    for i in range(df.shape[0]):
+        X,Y= proj.transform(df.latitud[i],df.longitud[i])
+        x.append(X)
+        y.append(Y)
+
+    return np.array(x), np.array(y)
