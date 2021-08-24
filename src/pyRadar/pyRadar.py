@@ -526,7 +526,7 @@ def generate_daily_acum(path_to_data:str,dict_of_data:dict,path_to_save:str,year
                                     get_velocity(iris),mult=False)
             n_week= int_to_str(get_week_number(year,month,day))
             path_to_save= path_to_save+year+'/'+month+'/'+n_week+'/'
-            np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum)
+            np.savez_compressed(path_to_save+"/radar_{}_{}_{}.npz".format(year,month,day),data=acum,coords=get_coordinates(iris),range=get_range(iris))
 
 def acum_daily(path2root:str,path2save:str,dict2data:dict):
     """Generate a daily acumalted from 
@@ -703,7 +703,7 @@ class create_radar_manipulator(object):
     def plot_rhi(self):
         """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
 
-    def acum_over_a_point(self,acum_data:np.ndarray,    latitud:str,longitud:str,filebase:str=FILEBASE,code:int=4485,nnear:int=1):
+    def acum_over_a_point(self,acum_data:np.ndarray, latitud:str,longitud:str,filebase:str=FILEBASE,code:int=4485,nnear:int=1):
         """get acumulated precipitation over a specific coords"""
         crs= CRS.from_epsg(code)
         df= pd.read_csv(filebase,delimiter=',')
