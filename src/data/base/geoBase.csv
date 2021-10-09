@@ -1,0 +1,51 @@
+id,Steet,Town,State,Zip Code,Full Address,Latitude,Longitude
+1,,Santiago de Querétaro,Querétaro,76230,"Santiago de Querétaro,Querétaro,76230",20.726007,-100.4426414
+2,"Carretera Antiguo Camino Real Jurica, 128-142",Santiago de Querétaro,Querétaro,76100,"Santiago de Querétaro,Querétaro,76100",20.6596022,-100.4424658
+3,Circuito Merlot,Santiago de Querétaro,Querétaro,76235,"Santiago de Querétaro,Querétaro,76235",20.6058267,-100.4871929
+4,Calzada de las lagrimas 701,Santiago de Querétaro,Querétaro,76148,"Santiago de Querétaro,Querétaro,76148",20.6387804,-100.39752
+5,Boulevar Bernardo Quintana Parque Querétaro 2000,Santiago de Querétaro,Querétaro,76140,"Santiago de Querétaro,Querétaro,76140",20.6199007,-100.3933074
+6,Alameda Hidalgo Centro,Santiago de Querétaro,Querétaro,76000,"Santiago de Querétaro,Querétaro,76000",20.591681,-100.39752
+7,Avenida Camino Dorado Misión de San Carlos,Santiago de Querétaro,Querétaro,76903,"Santiago de Querétaro,Querétaro,76903",20.5391153,-100.3938539
+8,Avenida Hacienda El Campanario,Santiago de Querétaro,Querétaro,76146,"Santiago de Querétaro,Querétaro,76146",20.6182789,-100.3469826
+9,Prolongación Constituyentes Oriente,Santiago de Querétaro,Querétaro,76246,"Santiago de Querétaro,Querétaro,76246",20.5978332,-100.3302686
+10,Valle de Guadiana Valle de Santiago-Valle de Aragón,Santiago de Querétaro,Querétaro,76907,"Santiago de Querétaro,Querétaro,76907",20.525436,-100.4550083
+11,Paseo Constituyentes Tejeda,Santiago de Querétaro,Querétaro,76900,"Santiago de Querétaro,Querétaro,76900",20.5363218,-100.4368463
+12,,Corregidora,Querétaro,76920,"Corregidora,Querétaro,76920",20.5075692,-100.4256085
+13,Calle Michoacán,Puerta de San Rafael,Querétaro,76924,"Puerta de San Rafael,Querétaro,76924",20.4345639,-100.4041412
+14,Carretera Ramal a El Jaral,Corregidora,Querétaro,76926,"Corregidora,Querétaro,76926",20.4560111,-100.4508956
+15,Calle Azucenas,Charco Blanco,Querétaro,76926,"Charco Blanco,Querétaro,76926",20.4344445,-100.4711111
+16,Carretera Acceso a Huitrón,Huimilpan,Querétaro,76957,"Huimilpan,Querétaro,76957",20.3852247,-100.3554035
+17,,El Salitrillo,Querétaro,76958,"El Salitrillo,Querétaro,76958",20.3574999,-100.3305554
+18,Calle 5 de Mayo S 92-212,Humilpan,Querétaro,76950,"Humilpan,Querétaro,76950",20.3737867,-100.2754365
+19,Calle Aguascalientes,Humilpan,Querétaro,76955,"Humilpan,Querétaro,76955",20.3881118,-100.2572084
+20,Calle Plaza P,San Pedro,Querétaro,76995,"San Pedro,Querétaro,76995",20.3194443,-100.2847222
+21,Carretera Lindero-San Ignacio,Humilpan,Querétaro,76997,"Humilpan,Querétaro,76997",20.3061466,-100.2992789
+22,,El Rincón,Querétaro,76874,"El Rincón,Querétaro,76874",20.7411111,-99.7847222
+23,,Amealco de Bonfil,Querétaro,76877,"Amealco de Bonfil,Querétaro,76877",20.2365265,-100.1815316
+24,Carreteria a la Noria - Acámbaro,Amealco de Bonfil,Querétaro,76878,"Amealco de Bonfil,Querétaro,76878",20.208717,-100.1535196
+25,Calle IV Centenario 135 ,Amealco de Bonfil,Querétaro,76850,"Amealco de Bonfil,Querétaro,76850",20.1885969,-100.1451177
+26,Calle la Muralla Las Américas-La Haciendita,Amealco de Bonfil,Querétaro,76853,"Amealco de Bonfil,Querétaro,76853",20.1789654,-100.1398669
+27,Calle Jazmín 2-100 Jardines del Bosque,Amealco de Bonfil,Querétaro,76850,"Amealco de Bonfil,Querétaro,76850",20.1885969,-100.1451177
+28,Calle Camino Real a Solís,Amealco de Bonfil,Querétaro,76894,"Amealco de Bonfil,Querétaro,76894",20.1885969,-100.1451177
+29,,Amealco de Bonfil,Querétaro,76894,"Amealco de Bonfil,Querétaro,76894",20.1885969,-100.1451177
+30,,Guadalupe el Terrero,Querétaro,76895,"Guadalupe el Terrero,Querétaro,76895",20.1226676,-100.1143176
+31,Carretera Ojo de Agua-Tierra negra,El Lindero,Querétaro,76895,"El Lindero,Querétaro,76895",20.0997222,-100.1341665
+32,Calle Sauces,Barrio Presa del Tecolote,Querétaro,76893,"Barrio Presa del Tecolote,Querétaro,76893",20.0755677,-100.1143176
+33,,San Nicolás de la Torre,Querétaro,76893,"San Nicolás de la Torre,Querétaro,76893",20.0772654,-100.1009095
+34,,Lomas de las Víboras,Querétaro,76893,"Lomas de las Víboras,Querétaro,76893",20.0755677,-100.1143176
+35,,Amealco de Bonfil,Querétaro,76893,"Amealco de Bonfil,Querétaro,76893",20.0755677,-100.1143176
+36,Carretera,Santiiago Mexquitlitlán Barrio 1ro,Querétaro,76890,"Santiiago Mexquitlitlán Barrio 1ro,Querétaro,76890",20.0510912,-100.0658469
+37,,Amealco de Bonfil,Querétaro,76897,"Amealco de Bonfil,Querétaro,76897",20.1029708,-100.0471549
+38,,Amealco de Bonfil,Querétaro,76889,"Amealco de Bonfil,Querétaro,76889",20.0845063,-99.9576849
+39,Carretera Amealco de Bonfi - Límite Estado,San Idelfonso Tultepec,Querétaro,76887,"San Idelfonso Tultepec,Querétaro,76887",20.1447057,-99.9568039
+40,,Tesnadá,Querétaro,76880,"Tesnadá,Querétaro,76880",20.1161063,-99.9716585
+41,,Amealco de Bonfil,Querétaro,76887,"Amealco de Bonfil,Querétaro,76887",20.1496107,-99.9520961
+42,Carretera Barrio del Coyote - La Muraya,La Muralla,Querétaro,76883,"La Muralla,Querétaro,76883",20.1781018,-100.13976
+43,Calle Miguel Hidalgo y Costilla 420,San Juan del Rio Centro,Querétaro,76800,"San Juan del Rio Centro,Querétaro,76800",20.3840768,-99.9982146
+44,Circuito Viñedo 1715,San Juan del Rio,Querétaro,76803,"San Juan del Rio,Querétaro,76803",20.3983219,-100.0066024
+45,Calle Lázaro Cárdenas 20-20B Nuevo San Isidro,San Juan del Rio,Querétaro,76803,"San Juan del Rio,Querétaro,76803",20.3983219,-100.0066024
+46,Cerrada del Torno La Rueda,Al Sureste de San Pedro Ahuacatlán,Querétaro,76803,"Al Sureste de San Pedro Ahuacatlán,Querétaro,76803",20.4341834,-99.9849356
+47,Calle Licenciado Fernando Díaz Ramirez 215 Nuevo San Juan,San Juan del Río,Querétaro,76806,"San Juan del Río,Querétaro,76806",20.3808637,-99.9772486
+48,Calle Independencia 76830,San Juan del Rio,Querétaro,76830,"San Juan del Rio,Querétaro,76830",20.3839933,-99.925
+49,Calle Fray Junípero Serra Jalpan de Serra Centro,Jalpan de Serra,Querétaro,76340,"Jalpan de Serra,Querétaro,76340",21.2180979,-99.4749083
+50,Calle Heroico Colegio Militar,Peñamiller,Querétaro,76450,"Peñamiller,Querétaro,76450",21.0519678,-99.8138884

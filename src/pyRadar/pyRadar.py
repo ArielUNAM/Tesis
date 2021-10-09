@@ -73,10 +73,8 @@
 # Radar libraries
 # ================
 from wradlib.util import get_wradlib_data_file
-import wradlib.georef as georef
 import wradlib as wl
 import pyart
-
 
 # Data processing libraries
 # ================
@@ -89,7 +87,6 @@ import pandas as pd
 # Graphical libraries
 # ==================
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from pyproj import CRS
 from pyproj import Transformer  
 
@@ -104,28 +101,10 @@ SCANN_RANGE= [236000,921]
 PARAM_VEL= [0,1]
 PARAM_TRANS=[74,1.6,True]
 ELEVATION= 1
-FILEBASE= 'src/data/base/sacest2.csv'
+FILEBASE= '/home/arielcg/Documentos/Tesis/src/data/base/geoBase.csv'
 
-# Acquisition and ordering of information
+# Acquisition and ordering
 # ========================================
-def get_dict_of_data_by_month(ldata:list,date_len:int)->dict:
-    """Return a dict of data sorted by months
-
-    :param ldata: List of radar data names
-    :type ldata: list
-    :param date_len: Length of date info
-    :type date_len: int
-    :return: A dict of data sorted by months
-    :rtype: dict
-    """
-    orderDicMon= {'01':[], '02':[], '03':[], '04':[],'05':[], '06':[],
-                    '07':[], '08':[], '09':[], '10':[],'11':[], '12':[]}
-
-    for data in ldata:
-        mes= data[date_len+4:date_len+6]
-        orderDicMon[mes].append(data)
-    return orderDicMon
-
 def get_dict_of_data_path(path_to_data:str)->dict:
     """Returns a dictionary of dictionaries that stores the location of the data classified by year, month and day; having this data as the keys.
 
@@ -152,6 +131,24 @@ def get_dict_of_data_path(path_to_data:str)->dict:
         orderDicData[key]= orderDicDay
 
     return orderDicData
+
+def get_dict_of_data_by_month(ldata:list,date_len:int)->dict:
+    """Return a dict of data sorted by months
+
+    :param ldata: List of radar data names
+    :type ldata: list
+    :param date_len: Length of date info
+    :type date_len: int
+    :return: A dict of data sorted by months
+    :rtype: dict
+    """
+    orderDicMon= {'01':[], '02':[], '03':[], '04':[],'05':[], '06':[],
+                    '07':[], '08':[], '09':[], '10':[],'11':[], '12':[]}
+
+    for data in ldata:
+        mes= data[date_len+4:date_len+6]
+        orderDicMon[mes].append(data)
+    return orderDicMon
 
 def get_word_length_until(word:str,symbol:str)->int:
     """Return the length of a word until a defined symbol appears
@@ -187,7 +184,7 @@ def get_basenames_of(words:list,word_length:int)->list:
             basenames.append(word[:word_length])
     return basenames
 
-# Data reading and processing
+# Data reading and processingƒ
 # ========================================
 def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
@@ -339,7 +336,14 @@ def data_cleaner(data:np.ndarray,nan:float=0,posinf:float=0,neginf:float=0)->np.
     """
     return np.nan_to_num(data, copy=False, nan=nan, posinf=posinf, neginf=neginf)
 
-def get_range(iris_data:OrderedDict):
+def get_range(iris_data:OrderedDict) ->float:
+    """Return the pulse radius
+
+    :param iris_data: Iris data
+    :type iris_data: OrderedDict
+    :return: Pulse radius
+    :rtype: float
+    """
     nbins=(iris_data['product_hdr']['product_end']['number_bins'])
     gate_0 =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
     gate_nbin =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
@@ -347,9 +351,23 @@ def get_range(iris_data:OrderedDict):
     return gate_0 + gate_size * np.arange(nbins, dtype='float32')
 
 def get_version(iris_data:OrderedDict)->str:
+    """Retur the versión of iris
+
+    :param iris_data: Iris object
+    :type iris_data: OrderedDict
+    :return: Iris version
+    :rtype: str
+    """
     return iris_data['product_hdr']['product_end']['iris_version_created']
 
 def get_elevation(iris_data:OrderedDict)->np.ndarray:
+    """Return the elevation value
+
+    :param iris_data: Iris Objecto
+    :type iris_data: OrderedDict
+    :return: Elevation value
+    :rtype: np.ndarray
+    """
     return iris_data['data'][1]['sweep_data']['DB_DBT']['ele_start']
 
 def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False)->np.ndarray:
@@ -392,16 +410,20 @@ def get_reflectivity(iris_data:OrderedDict)->np.ndarray:
     """
     return iris_data['data'][1]['sweep_data']['DB_DBZ']['data']
 
-def get_coordinates(iris_data:OrderedDict)->tuple:
-    """Return the lat and lon of a iris data
+def get_coordinates(iris_data:OrderedDict,minusRotate=False)->tuple:
+    """Return the lon and lat of a iris data
 
     :param iris_data: [description]
     :type iris_data: OrderedDict
     :return: [description]
     :rtype: tuple
     """
-    return(iris_data['product_hdr']['product_end']['latitude'],
-          iris_data['product_hdr']['product_end']['longitude'])
+    if (minusRotate):
+        return(iris_data['product_hdr']['product_end']['longitude']-360,
+              iris_data['product_hdr']['product_end']['latitude'])
+    else:
+        return(iris_data['product_hdr']['product_end']['longitude'],
+              iris_data['product_hdr']['product_end']['latitude'])
 
 def get_iris_data(path_iris:str)->dict:
     """Return an wradlib file type of iris file
@@ -684,9 +706,9 @@ class create_radar_manipulator(object):
         plt.grid(color="gray")
         plt.savefig(path+name+"ppi_wrl.png")
         
-    def plot_ppi_art(self,name,radar_data,vlim,path):
+    def plot_ppi_art(self,name,radar_data,vlim,path,source="/home/arielcg/QRO_2015/"):
         fig= plt.figure()
-        radar= pyart.io.read_rsl('/home/arielcg/QRO_2015/'+'RAW_NA_000_236_20150711000109')
+        radar= pyart.io.read_rsl(source+'RAW_NA_000_236_20150711000109')
         level0= radar.extract_sweeps([0])
 
         level0.add_field('acum',radar_data)
@@ -697,34 +719,90 @@ class create_radar_manipulator(object):
         plt.savefig(path+name+"ppi_art.png")
 
     def plot_capi(self):
-        """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que se quiere generar el CAPPI"""
+        """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que        se quiere generar el CAPPI"""
         pass
 
     def plot_rhi(self):
         """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
+        pass
 
-    def acum_over_a_point(self,acum_data:np.ndarray, latitud:str,longitud:str,filebase:str=FILEBASE,code:int=4485,nnear:int=1):
-        """get acumulated precipitation over a specific coords"""
-        crs= CRS.from_epsg(code)
-        df= pd.read_csv(filebase,delimiter=',')
-        X, Y= get_project_trasnform(df,Transformer.from_crs(crs.geodetic_crs,crs))
-        az= np.linspace(0,360,361)[0:-1]
-        proj= georef.epsg_to_osr(code)
+    def plot_rain_gauge_locations(self,acum_data:np.ndarray,figsize=(12,12))->None:
+        """Routine verification measures for radar-based precipitation estimates
 
-        site_coords= get_coordinates(iris_data)
-        range_rad= get_range(iris_data)
+        :param acum_data: Archivo a leer
+        :type acum_data: np.ndarray
+        :param figsize: Tamaño de la figura, defaults to (12,12)
+        :type figsize: tuple, optional
+        """
+        _, x,y,binx,biny,binx_nn,biny_nn= self.bin_precipitation_estimates(acum_data)
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(121)
+        ax.plot(binx, biny, 'r+')
+        ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
+        ax.plot(x, y, 'bo')
+        ax.axis('tight')
+        ax.set_aspect("equal")
+        plt.title("Full view")
+        ax = fig.add_subplot(122)
+        ax.plot(binx, biny, 'r+')
+        ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
+        ax.plot(x, y, 'bo')
+        plt.xlim(binx_nn.min()-5, binx_nn.max()+5)
+        plt.ylim(biny_nn.min()-7, biny_nn.max()+8)
+        ax.set_aspect("equal")
+        txt = plt.title("Zoom into rain gauge locations")
+        plt.tight_layout()
+        plt.savefig("../data/img/rgl.png")
+        
 
-        polar_neighbours= wl.verify.PolarNeighbours(range_rad, az, site_coords, proj, X, Y, nnear=nnear)
+    def bin_precipitation_estimates(self,acum_data,nnear=1,epsg=4326,source='/home/arielcg/QRO_2015/',filename='RAW_NA_000_236_20150711000109'):
+        
+        iris= get_iris_data(source+filename)
+        r= get_range(iris)
+        az = np.linspace(0,360,361)[0:-1]
+        sitecoords= get_coordinates(iris)
 
-        radatr_at_gages= polar_neighbours.extract(acum_data)
+        proj= wl.georef.epsg_to_osr(epsg)
+        x,y= get_project_trasnform(FILEBASE, epsg)
 
-        return radatr_at_gages
+        polarneighbs= wl.verify.PolarNeighbours(r,az,sitecoords,proj,x,y,nnear=nnear)
 
-def get_project_trasnform(df,proj):
-    x=y=[]
+        radar_at_gages= polarneighbs.extract( acum_data['data'] )
+        binx, biny = polarneighbs.get_bincoords()
+        binx_nn, biny_nn= polarneighbs.get_bincoords_at_points()
+
+        return radar_at_gages, x,y,binx,biny,binx_nn,biny_nn
+
+def get_project_trasnform(file:str,epsg:int)->tuple:
+    """Return the lon and lat transformation of a file to as pesg
+
+    :param file: path of the file
+    :type file: str
+    :param epsg: id of epsg
+    :type epsg: int
+    :return: A tupple of list
+    :rtype: tuple
+    """
+    crs= CRS.from_epsg(epsg)
+    proj= Transformer.from_crs(crs.geodetic_crs,crs)
+    df= pd.read_csv(file)
+    lat=[]
+    lon=[]
+
     for i in range(df.shape[0]):
-        X,Y= proj.transform(df.latitud[i],df.longitud[i])
-        x.append(X)
-        y.append(Y)
+        LAT,LON= proj.transform(df.Latitude[i],df.Longitude[i]) 
+        lat.append(LAT)
+        lon.append(LON)
 
-    return np.array(x), np.array(y)
+    return np.array(lon),np.array(lat)
+
+#########################
+p='/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_12.npz'
+radar_manipulator= create_radar_manipulator()
+#radar_manipulator.plot_ppi_art("prueba",np.load(p),[0,100],'.')
+#radar_manipulator.plot_rain_gauge_locations(np.load(p))
+radar_at_gages, x,y,_,_,_,_= radar_manipulator.bin_precipitation_estimates(np.load(p))
+#print(radar_at_gages, x,y,binx,biny,binx_nn,biny_nn)
+df= pd.DataFrame([radar_at_gages, x,y]).transpose()
+df.to_csv("../data/precipitation/prueba.csv",index=False,header=['rain','lon','lat'])
+

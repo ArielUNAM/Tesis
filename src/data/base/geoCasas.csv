@@ -1,0 +1,52 @@
+id,Full Address,Latitude,Longitude
+,MapsTooltip - Hidden - StringFilter,MapsLat - Hidden - NoFilter,MapsLong - Hidden - NoFilter
+1,"Agapito Pozo, Centro, 76220 Centro 76000, Santa Rosa Jáuregui, Qro.",20.7421997,-100.447011
+2,"Zaragoza 20, Solana San Juan, 76233 La Solana, Qro.",20.7438877,-100.3943057
+3,"Blvd. Universitario 321, 76230 Juriquilla, Qro.",20.7161291,-100.4458228
+4,"Lago Patzcuaro 915, Cumbres del Lago, 76230 Juriquilla, Qro.",20.6987993,-100.4721271
+5,"Santa Fé, 76230 Juriquilla, Qro.",20.6954259,-100.4452328
+6,"P.º Jurica, Jurica, 76100 Santiago de Querétaro, Qro.",20.662213,-100.4421855
+7,"76118 Santiago de Querétaro, Qro.",20.648188,-100.4607314
+8,"76229 Tlacote el Alto, Qro.",20.6913241,-100.5253929
+9,"La Estancia, 76227 Qro.",20.7127904,-100.5591474
+10,"Camino San Pedro Mártir s/n Colina, Loma de Sta. Cruz, Santiago de Querétaro, Qro.",20.6220831,-100.4495215
+11,"Calle 16 de Septiembre 8-24, Centro, 76000 Santiago de Querétaro, Qro.",20.5932663,-100.3929788
+12,"C. Antonio Carranza 101A, Reforma Agraria 2da Secc, 76086 Santiago de Querétaro, Qro.",20.5588937,-100.3939876
+13,"Rivera del Río S/N Col, El Pueblito, 76900 Qro.",20.5506415,-100.4460468
+14,"Prol Jazmín 8, La Negreta, 76900 El Pueblito, Qro.",20.5276133,-100.4525347
+15,"Estatal 400, kilómetro 5.5, 76170 Santiago de Querétaro, Qro.",20.5881583,-100.4204666
+16,"76984 Huimilpan Centro, Qro.",20.3736714,-100.2746876
+17,"Manuel Gómez Morín 1440, Lagunillas, 76980 Lagunillas, Qro.",20.4595741,-100.2927064
+18,"Blvrd el Salto, El Salto, 76952 Qro.",20.3906296,-100.2814221
+19,"76955 Huimilpan Centro, Qro.",20.3736714,-100.2746876
+20,"C. Bosques De Pio XII, 76992 Qro.",20.3168086,-100.2557143
+21,"Priv. de las Margaritas, 76992 Qro.",20.3216921,-100.2548817
+22,"Morelos 68, Centro, 76850 Amealco de Bonfil, Qro.",20.1873016,-100.1442342
+23,"Camacho Guzmán, 76894 Qro.",20.1816868,-100.1370877
+24,"Av. San Miguel , San Miguel Tlaxcaltepec (Barrio, Centro, 76895 Amealco de Bonfil, Qro.",20.1135057,-100.1243918
+25,"76890 Amealco de Bonfil, Qro.",20.0614336,-100.0527498
+26,"Calle Prol Benito Juárez, Banthi, 76800 San Juan del Río, Qro.",20.3960575,-99.9570921
+27,"Av. Gral. Felipe Angeles 21, 76803 Barrio La Concepción, Qro.",20.3925385,-100.0056432
+28,"INFONAVIT Pedregoso, 76808 San Juan del Río, Qro.",20.3764703,-99.9639728
+29,"Francisco I. Madero Y Zapata Num. 17, Paso De Mata, 76830 San Juan del Río, Qro.",20.3401912,-99.9271629
+30,"Nautha 10, Centro, 76750 Tequisquiapan, Qro.",20.5265897,-99.889052
+31,"76755 Tequisquiapan, Qro.",20.515626,-99.8878507
+32,"Chapulines SN, Club de Golf, 76750 Tequisquiapan, Qro.",20.5487606,-99.8892423
+33,"Calle Belisario Domínguez 104, Centro, Zona Centro, 76650 Ezequiel Montes, Qro.",20.6653637,-99.8984858
+34,"Carretera Ezequiel Montes-Villa Progreso Km 2., Las Flores, 76687 Ezequiel Montes, Qro.",20.6565756,-99.878873
+35,"Camino Antigua Hacienda de Tovares S/N Ejido, Las Fuentes, 76500 Cadereyta de Montes, Qro.",20.6872652,-99.8047963
+36,"Magnolias 25, Centro, Zona Centro, 76500 Cadereyta de Montes, Qro.",20.7000595,-99.8166075
+37,"76515 Cadereyta de Montes, Qro.",20.6773344,-99.8431866
+38,"Zibatá, 76269 Qro.",20.6809522,-100.3329494
+39,"Paseos de Zakia Pte., 76269 Qro.",20.6573322,-100.3130619
+40,"Fuerte de San Nicolás 101-Interior 3, El Vergel, 76148 Santiago de Querétaro, Qro.",20.6506058,-100.4104758
+41,"El Marques, 76260 Santiago de Querétaro, Qro.",20.5835963,-100.3729496
+42,"Benito Juárez 3, Centro, 76600 Tolimán, Qro.",20.9067463,-99.9283477
+43,"Av Lopez Portillo N/A, Centro, 76450 Peñamiller, Qro.",21.0540021,-99.8152805
+44,"Plaza Juarez s/n, San Miguel Palmas, 76470 San Miguel Palmas, Qro.",21.0997854,-99.963347
+45,"76340, Jiménez 4, Centro, 76340 Jalpan de Serra, Qro.",21.2178508,-99.4755704
+46,"Cam. Al Camposanto, El Panteon, 76346 Jalpan de Serra, Qro.",21.2087459,-99.4750317
+47,"Calle Palacio Municipal SN Centro, 76550 San Joaquín, Qro.",20.9159885,-99.5664063
+48,"Jalpan de Serra - San Juan del Rio 560, 76526 San Javier, Qro.",20.8307843,-99.719657
+49,"Calle Belisario Domínguez 104, Centro, Zona Centro, 76650 Ezequiel Montes, Qro.",20.6653637,-99.8984858
+50,"Avenida Juárez Poniente 140, esq. con calle Col, Centro, 76800 San Juan del Río, Qro.",20.3855004,-100.0075992

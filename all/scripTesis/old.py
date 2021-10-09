@@ -600,4 +600,38 @@ def plot_data(sdt,files,path):
         
         ppi2(f,'figure_'+ name,'Acumulado_'+name,save=True,psave=path)
             
-        
+#########
+
+#     pr.acum_daily(path2root,path2save,dict2data)
+#     for year,_ in dict2data.items():
+#         pr.acum_week(path2save,year)
+
+#     # name=0
+#     # ploter= pr.create_radar_visualizator()
+#     # for dt in d:
+#     #     name+=1
+#     #     ploter.ppi_art(str(name),load(dt),[0,200],path2fig)
+    
+# #Routine verification measures for radar-based precipitation estimates    
+# def check():
+#     radar_manipulator= pr.create_radar_manipulator()
+#     _,binx, biny, binx_nn, biny_nn,x,y= radar_manipulator.bin_precipitation_estimates(load(d[0]))
+#     fig = pl.figure(figsize=(12,12))
+#     ax = fig.add_subplot(121)
+#     ax.plot(binx, biny, 'r+')
+#     ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
+#     ax.plot(x, y, 'bo')
+#     ax.axis('tight')
+#     ax.set_aspect("equal")
+#     pl.title("Full view")
+#     ax = fig.add_subplot(122)
+#     ax.plot(binx, biny, 'r+')
+#     ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
+#     ax.plot(x, y, 'bo')
+#     pl.xlim(binx_nn.min()-5, binx_nn.max()+5)
+#     pl.ylim(biny_nn.min()-7, biny_nn.max()+8)
+#     ax.set_aspect("equal")
+#     txt = pl.title("Zoom into rain gauge locations")
+#     pl.tight_layout()
+#     pl.savefig('1.png')
+
