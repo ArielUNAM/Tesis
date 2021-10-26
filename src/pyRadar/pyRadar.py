@@ -75,6 +75,9 @@
 from wradlib.util import get_wradlib_data_file
 import wradlib as wl
 import pyart
+import wradlib.vis as vis
+import wradlib.clutter as clutter
+import wradlib.util as util
 
 # Data processing libraries
 # ================
@@ -93,6 +96,16 @@ from pyproj import Transformer
 # System libraries
 # =================
 import os
+
+# Warnigs
+# =================
+import warnings
+warnings.filterwarnings('ignore')
+try:
+    get_ipython().magic("matplotlib inline")
+except:
+    plt.ion()
+
 
 # VARIABLES
 # =================
@@ -184,7 +197,7 @@ def get_basenames_of(words:list,word_length:int)->list:
             basenames.append(word[:word_length])
     return basenames
 
-# Data reading and processingƒ
+# Data reading and processing Wradlib
 # ========================================
 def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
@@ -254,7 +267,7 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
     pia= data_cleaner(pia)
     return (dBZ_ord,pia)
 
-def clutter_processing(reflectivity:np.ndarray,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
+def get_clutter(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
     """ Return a np.ndarray after a clutter filter
 
     Clutter filter published by Gabella et al., 2002 is applied
@@ -270,9 +283,28 @@ def clutter_processing(reflectivity:np.ndarray,tr1:float=12,n_p:float=12,tr2:flo
     :return: [description]
     :rtype: [type]
     """
-    desorden = wl.clutter.filter_gabella(reflectivity,
+    return wl.clutter.filter_gabella(reflectivity,wsize=wsize,thrsnorain=thrsnorain,
                                          tr1=tr1,n_p=n_p, tr2=tr2)
-    return wl.ipol.interpolate_polar(reflectivity,desorden)
+                                
+def clutter_processing(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
+    """ Return a np.ndarray after a clutter filter
+
+    Clutter filter published by Gabella et al., 2002 is applied
+
+    :param reflectivity: [description]
+    :type reflectivity: np.ndarray
+    :param tr1: [description], defaults to 12
+    :type tr1: float, optional
+    :param n_p: [description], defaults to 12
+    :type n_p: float, optional
+    :param tr2: [description], defaults to 1.1
+    :type tr2: float, optional
+    :return: [description]
+    :rtype: [type]
+    """
+
+    return wl.ipol.interpolate_polar(reflectivity,get_clutter(reflectivity,wsize=wsize,thrsnorain=thrsnorain,
+                                         tr1=tr1,n_p=n_p, tr2=tr2))
 
 def pia_processing(dBZ_order:np.ndarray,a_max:float=1.67e-4,
                         a_min:float=2.33e-5,
@@ -434,6 +466,9 @@ def get_iris_data(path_iris:str)->dict:
     :rtype: OrderedDict
     """
     return wl.io.iris.read_iris(path_iris)
+
+# Data reading and processing pyart
+# ========================================
 
 # Automatic processing
 # ========================================
@@ -686,9 +721,18 @@ def acum_year(path2save:str,year:str=''):
             acum_year= acum_by_path(path_year)
             np.savez_compressed(path2save+"/radar_{}.npz".format(year),data=acum_month)
 
-# Plotting
-# ========================================
-class create_radar_manipulator(object):
+# Classes
+## Reading
+## ========================================
+# class createRadarWL(radar_manipulator):
+#     def __init__(self,filename:str) -> None:
+#         super().__init__()
+#         self.iris= get_iris_data(filename)
+
+    
+## Plotting
+## ========================================
+class radar_manipulator(object):
     def __init__(self)->None:
         pass
 
@@ -718,14 +762,47 @@ class create_radar_manipulator(object):
         display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
         plt.savefig(path+name+"ppi_art.png")
 
-    def plot_capi(self):
-        """CAPPI, Constant Altitude Plan Position Indicator, este segundo tipo de imagen trata de representar la reflectividad registrada sobre un plano a una altura constante. Para generar este segundo tipo de imagen se utilizan aquellos fragmentos de información de las diversas elevaciones que se encuentran más cerca de la altura para la que        se quiere generar el CAPPI"""
-        pass
-
+    def plot_clutter_wrl(self,reflectivity:np.ndarray,wsize=5,
+                            thrsnorain=0.,
+                            tr1=6.,
+                            n_p=8,
+                            tr2=1.3):
+        clmap= get_clutter(reflectivity,
+                                wsize=5,
+                                thrsnorain=0.,
+                                tr1=6.,
+                                n_p=8,
+                                tr2=1.3)
+        fig = plt.figure(figsize=(12,8))
+        ax = fig.add_subplot(121)
+        ax, _ = vis.plot_ppi(reflectivity, ax=ax)
+        ax.set_title('Reflectivity')
+        ax = fig.add_subplot(122)
+        ax, _ = vis.plot_ppi(clmap, ax=ax)
+        ax.set_title('Cluttermap')
+        plt.savefig("../data/img/clutter_map.png")
+        
     def plot_rhi(self):
         """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
         pass
 
+    def plot_geo_ppi_art(self):
+        radar= pyart.io.read_sigmet('/home/arielcg/QRO_2015/RAW_NA_000_236_20150306035609')
+        display = pyart.graph.RadarMapDisplay(radar)
+
+        # Setting projection and ploting the second tilt
+        projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0],
+                                        central_longitude=radar.longitude['data'][0])
+
+        fig = plt.figure(figsize=(6,6))
+        display.plot_ppi_map('reflectivity', vmin=-20, vmax=20,
+                        resolution='10m', projection=projection,
+                        fig=fig, lat_0=radar.latitude['data'][0],
+                        lon_0=radar.longitude['data'][0])
+
+        # Indicate the radar location with a point
+        display.plot_point(radar.longitude['data'][0], radar.latitude['data'][0])
+    
     def plot_rain_gauge_locations(self,acum_data:np.ndarray,figsize=(12,12))->None:
         """Routine verification measures for radar-based precipitation estimates
 
@@ -754,7 +831,6 @@ class create_radar_manipulator(object):
         plt.tight_layout()
         plt.savefig("../data/img/rgl.png")
         
-
     def bin_precipitation_estimates(self,acum_data,nnear=1,epsg=4326,source='/home/arielcg/QRO_2015/',filename='RAW_NA_000_236_20150711000109'):
         
         iris= get_iris_data(source+filename)
@@ -797,12 +873,12 @@ def get_project_trasnform(file:str,epsg:int)->tuple:
     return np.array(lon),np.array(lat)
 
 #########################
-p='/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_12.npz'
-radar_manipulator= create_radar_manipulator()
-#radar_manipulator.plot_ppi_art("prueba",np.load(p),[0,100],'.')
-#radar_manipulator.plot_rain_gauge_locations(np.load(p))
-radar_at_gages, x,y,_,_,_,_= radar_manipulator.bin_precipitation_estimates(np.load(p))
-#print(radar_at_gages, x,y,binx,biny,binx_nn,biny_nn)
-df= pd.DataFrame([radar_at_gages, x,y]).transpose()
-df.to_csv("../data/precipitation/prueba.csv",index=False,header=['rain','lon','lat'])
+# p='/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_12.npz'
+# radar_manipulator= create_radar_manipulator()
+# #radar_manipulator.plot_ppi_art("prueba",np.load(p),[0,100],'.')
+# #radar_manipulator.plot_rain_gauge_locations(np.load(p))
+# radar_at_gages, x,y,_,_,_,_= radar_manipulator.bin_precipitation_estimates(np.load(p))
+# #print(radar_at_gages, x,y,binx,biny,binx_nn,biny_nn)
+# df= pd.DataFrame([radar_at_gages, x,y]).transpose()
+# df.to_csv("../data/precipitation/prueba.csv",index=False,header=['rain','lon','lat'])
 
