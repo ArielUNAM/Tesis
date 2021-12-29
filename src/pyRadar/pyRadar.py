@@ -76,8 +76,8 @@ from wradlib.util import get_wradlib_data_file
 import wradlib as wl
 import pyart
 import wradlib.vis as vis
-import wradlib.clutter as clutter
 import wradlib.util as util
+import osgeo as osr
 
 # Data processing libraries
 # ================
@@ -92,6 +92,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pyproj import CRS
 from pyproj import Transformer  
+import cartopy.crs as ccrs
 
 # System libraries
 # =================
@@ -119,16 +120,17 @@ FILEBASE= '/home/arielcg/Documentos/Tesis/src/data/base/geoBase.csv'
 # Acquisition and ordering
 # ========================================
 def get_dict_of_data_path(path_to_data:str)->dict:
-    """Returns a dictionary of dictionaries that stores the location of the data classified by year, month and day; having this data as the keys.
+    """Returns a dictionary of dictionaries that stores the location of the data classified by month and day; having this data as the keys.
 
     :param path_to_data: Path to data radar
     :type path_to_data: str
     :return: A dictionary of dictionaries of data radar
     :rtype: dict
     """
-    orderList= sorted(os.listdir(path_to_data))
+    orderList= sorted( os.listdir( path_to_data ) )
     n= get_word_length_until(orderList[0],'_')
     orderDicMon= get_dict_of_data_by_month(orderList,n)
+
 
     orderDicData= {}
 
@@ -163,7 +165,7 @@ def get_dict_of_data_by_month(ldata:list,date_len:int)->dict:
         orderDicMon[mes].append(data)
     return orderDicMon
 
-def get_word_length_until(word:str,symbol:str)->int:
+def get_word_length_until(word:str,symbol:str,inverse:bool=True)->int:
     """Return the length of a word until a defined symbol appears
 
     :param word: Word to measure
@@ -173,13 +175,20 @@ def get_word_length_until(word:str,symbol:str)->int:
     :return: The length of a word until a defined symbol appears
     :rtype: int
     """
-    n= len(word) - 1
-    while (True):
-        if ( word[n] == symbol ):
-            break
-        else:
-            n-= 1
-    return n+1
+    ini= 0
+    fin= len(word)
+    pas= 1
+
+    if( inverse ):
+        ini= len(word) - 1
+        fin= 0
+        pas= -1
+
+    for i in range(ini,fin,pas):
+        if( word[i] == symbol ):
+            return i + 1
+        continue
+
 
 def get_basenames_of(words:list,word_length:int)->list:
     """Return the basenames of radar data without the date information.
@@ -199,7 +208,17 @@ def get_basenames_of(words:list,word_length:int)->list:
 
 # Data reading and processing Wradlib
 # ========================================
-def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True)->np.ndarray:
+def est_rain_rate_z(path_to_data,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True,bool_vel:bool= True,angle:float=1):
+    iris_data= get_iris_data( path_to_data )
+
+    if( get_elevation(iris_data,True) < angle ):
+        dBZ, pia= data_processing_chain(iris_data,pia_type,tr1,n_p,tr2,)
+        velocity= get_velocity(iris_data,bool_vel)
+        return reflectivity_to_rainfall(dBZ+pia,velocity,a,b,intervalos,mult)
+    
+    return np.array([])
+
+def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True, zeros:bool=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
 
     Reflectivity (Z) and precipitation rate (R) can be related in form of a power law Z=a⋅Rb. The parameters a and b depend on the type of precipitation
@@ -227,9 +246,12 @@ def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float
 
     if mult:
         vel=data_cleaner(vel)
-        return np.multiply(vel,depth)
-    else:
-        return depth
+        depth= np.multiply(vel,depth)
+
+    if( zeros ):
+        return np.where(depth < 0,0 ,depth )
+
+    return depth
 
 def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1)->tuple:
     """Return a tuple of data after a processed
@@ -253,8 +275,7 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
     if ( pia_type == 'default' ):
         pia= pia_processing(dBZ_ord)
     else:
-        pia= pia_processing(
-            dBZ_ord,
+        pia= pia_processing(dBZ_ord,
             a_max=1.67e-4,
             a_min=2.33e-5, 
             n_a=100,
@@ -264,10 +285,11 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
             gate_length=1.,
             constraints= [wl.atten.constraint_dbz,wl.atten.constraint_pia],
             constraint_args=[[59.0],[20.0]])
+
     pia= data_cleaner(pia)
     return (dBZ_ord,pia)
 
-def get_clutter(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
+def get_clutter(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1,clutter:bool=True)->np.ndarray:
     """ Return a np.ndarray after a clutter filter
 
     Clutter filter published by Gabella et al., 2002 is applied
@@ -283,8 +305,10 @@ def get_clutter(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=1
     :return: [description]
     :rtype: [type]
     """
-    return wl.clutter.filter_gabella(reflectivity,wsize=wsize,thrsnorain=thrsnorain,
-                                         tr1=tr1,n_p=n_p, tr2=tr2)
+    if( clutter ):
+        return wl.clutter.filter_gabella(reflectivity,wsize=wsize,thrsnorain=thrsnorain,tr1=tr1,n_p=n_p, tr2=tr2)
+    else:
+        return wl.clutter.histo_cut(reflectivity)
                                 
 def clutter_processing(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1)->np.ndarray:
     """ Return a np.ndarray after a clutter filter
@@ -303,8 +327,7 @@ def clutter_processing(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:
     :rtype: [type]
     """
 
-    return wl.ipol.interpolate_polar(reflectivity,get_clutter(reflectivity,wsize=wsize,thrsnorain=thrsnorain,
-                                         tr1=tr1,n_p=n_p, tr2=tr2))
+    return wl.ipol.interpolate_polar(reflectivity,get_clutter(reflectivity,wsize=wsize,thrsnorain=thrsnorain,tr1=tr1,n_p=n_p, tr2=tr2))
 
 def pia_processing(dBZ_order:np.ndarray,a_max:float=1.67e-4,
                         a_min:float=2.33e-5,
@@ -392,7 +415,7 @@ def get_version(iris_data:OrderedDict)->str:
     """
     return iris_data['product_hdr']['product_end']['iris_version_created']
 
-def get_elevation(iris_data:OrderedDict)->np.ndarray:
+def get_elevation(iris_data:OrderedDict,prom=False)->np.ndarray:
     """Return the elevation value
 
     :param iris_data: Iris Objecto
@@ -400,9 +423,12 @@ def get_elevation(iris_data:OrderedDict)->np.ndarray:
     :return: Elevation value
     :rtype: np.ndarray
     """
-    return iris_data['data'][1]['sweep_data']['DB_DBT']['ele_start']
+    arry= iris_data['data'][1]['sweep_data']['DB_DBT']['ele_start'].copy()
+    if( prom ):
+        return np.mean(arry)
+    return arry
 
-def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float=None, processing:bool=False)->np.ndarray:
+def get_velocity(iris_data:OrderedDict, unmmasked:bool= True)->np.ndarray:
     """Return the velocity of a iris data.
 
     :param iris_data: [description]
@@ -416,20 +442,24 @@ def get_velocity(iris_data:OrderedDict, maskedVal:float=None, unmmaskedVal:float
     :return: [description]
     :rtype: np.ndarray
     """
-    vel= iris_data['data'][1]['sweep_data']['DB_VEL']['data']
 
-    if ( processing ):
-        if ( unmmaskedVal != None ):
-            vel[~vel.mask] = unmmaskedVal
+    vel= iris_data['data'][1]['sweep_data']['DB_VEL']['data'].filled().copy() if unmmasked else iris_data['data'][1]['sweep_data']['DB_VEL']['data'].copy()
 
-        if ( maskedVal == None ):
-            vel.mask= ma.nomask
-        else:
-            vel.mask= maskedVal
+    return vel
+
+def get_azimuth(iris_data:OrderedDict, start:bool=True)->np.ndarray:
+    """Return the iris azimuth 
     
-        return vel
-    else:
-        return vel
+    El azimut es el ángulo que forma el Norte y un cuerpo celeste, medido en sentido de rotación de las agujas de un reloj alrededor del horizonte del observador.
+
+    :param iris_data: [description]
+    :type iris_data: OrderedDict
+    :return: [description]
+    :rtype: np.ndarray
+    """
+    str_az= 'azi_start' if start else 'azi_stop'
+    
+    return iris_data['data'][1]['sweep_data']['DB_DBT'][str_az].copy()
 
 def get_reflectivity(iris_data:OrderedDict)->np.ndarray:
     """Return the reflectivity of a iris data.
@@ -440,9 +470,9 @@ def get_reflectivity(iris_data:OrderedDict)->np.ndarray:
     :param iris_data: [description]
     :type iris_data: OrderedDict
     """
-    return iris_data['data'][1]['sweep_data']['DB_DBZ']['data']
+    return iris_data['data'][1]['sweep_data']['DB_DBZ']['data'].copy()
 
-def get_coordinates(iris_data:OrderedDict,minusRotate=False)->tuple:
+def get_coordinates(iris_data:OrderedDict,minusRotate:bool=False,getHeigth:bool=False)->tuple:
     """Return the lon and lat of a iris data
 
     :param iris_data: [description]
@@ -451,11 +481,23 @@ def get_coordinates(iris_data:OrderedDict,minusRotate=False)->tuple:
     :rtype: tuple
     """
     if (minusRotate):
-        return(iris_data['product_hdr']['product_end']['longitude']-360,
-              iris_data['product_hdr']['product_end']['latitude'])
+        if ( getHeigth ):
+            h= iris_data['product_hdr']['product_end']['ground_height'] + iris_data['product_hdr']['product_end']['radar_height']
+            return(iris_data['product_hdr']['product_end']['longitude']-360,
+                   iris_data['product_hdr']['product_end']['latitude'],
+                   h)
+        else:
+            return(iris_data['product_hdr']['product_end']['longitude']-360,
+                   iris_data['product_hdr']['product_end']['latitude'])
     else:
-        return(iris_data['product_hdr']['product_end']['longitude'],
-              iris_data['product_hdr']['product_end']['latitude'])
+        if ( getHeigth ):
+            h= iris_data['product_hdr']['product_end']['ground_height'] + iris_data['product_hdr']['product_end']['radar_height']
+            return(iris_data['product_hdr']['product_end']['longitude'],
+                   iris_data['product_hdr']['product_end']['latitude'],
+                   h)
+        else:
+            return(iris_data['product_hdr']['product_end']['longitude'],
+                   iris_data['product_hdr']['product_end']['latitude'])
 
 def get_iris_data(path_iris:str)->dict:
     """Return an wradlib file type of iris file
@@ -466,6 +508,20 @@ def get_iris_data(path_iris:str)->dict:
     :rtype: OrderedDict
     """
     return wl.io.iris.read_iris(path_iris)
+
+def get_radar(path_radar:str)->pyart.core.radar.Radar:
+    """[summary]
+
+    :param path_radar: [description]
+    :type path_radar: str
+    :return: [description]
+    :rtype: pyart.core.radar.Radar
+    """
+    try:
+        return pyart.io.read_sigmet(path_radar)
+    except:
+        return pyart.io.read(path_radar)
+
 
 # Data reading and processing pyart
 # ========================================
@@ -721,6 +777,94 @@ def acum_year(path2save:str,year:str=''):
             acum_year= acum_by_path(path_year)
             np.savez_compressed(path2save+"/radar_{}.npz".format(year),data=acum_month)
 
+def radar_acum_year(path_to_data:str,path_to_save:str,year:str,month:str='',radar_base:str=''):
+    #Obtenemos la información ordenada en un diccionario
+    dict_of_data= get_dict_of_data_path( path_to_data )
+    radar_base= radar_base if radar_base else  "/home/arielcg/QRO_2016/RAW_NA_000_236_20160729020609" 
+    
+    #Empezamos el acumulado
+    #Acumulado mensual
+    for key_month in dict_of_data:
+        print(key_month)
+        #Acumulado semanal
+        radar= get_radar( radar_base )     
+        month_acum= None
+        for key_day in dict_of_data[key_month]:
+            print(key_day)
+            day_acum= None
+            #Acumulado diario
+            for path_day in dict_of_data[key_month][key_day]:
+                print(path_day)
+                rainfall= est_rain_rate_z( path_to_data + path_day ) 
+                day_acum += rainfall
+                print(rainfall)
+            dict_axu= radar.fields['reflectivity'].copy()
+            dict_axu.pop('_FillValue')
+            dict_axu['data']= day_acum
+            print(day_acum)
+            radar.add_field('day_{}'.format(key_day),dict_axu,replace_existing=True)
+            month_acum+= day_acum
+            print(month_acum)
+        if( month_acum ):
+            dict_axu= radar.fields['reflectivity'].copy()
+            dict_axu.pop('_FillValue')
+            dict_axu['data']= month_acum
+            print(month_acum)
+            print(dict_axu)
+            radar.add_field('reflectivity',dict_axu,replace_existing=True)
+            pyart.io.write_cfradial(path_to_save+'QRO_{}_{}.nc',format(year,key_month), radar)
+        
+            
+def get_acum_by_path(path2data:str,files:list,shape:tuple)->np.ndarray:
+    acum= np.zeros(shape)
+    for file in files[:3]:
+        rain= est_rain_rate_z( path2data + file)
+        acum+= rain
+
+    return acum
+
+def set_radar(path_to_file,path_to_save,dic,name):
+    radar= get_radar(path_to_file)
+    
+    keys= radar.fields.copy()
+    keys= keys.keys()
+    for key in keys:
+        radar.fields.pop(key)
+    
+    for key, value in dic.items():
+        radar.add_field(key,value,replace_existing=True)
+    
+    pyart.io.write_cfradial(path_to_save+name+'.nc', radar)
+
+def get_dic_radar_data(data,long_name):
+    dic= {'units':'dBZ',
+          'standard_name': 'equivalent_reflectivity_factor',
+          'long_name':long_name,
+          'coordinates': 'elevation azimuth range',
+          'data':data}
+    return dic
+
+def get_acum_by_dict_radar(dic):
+    acum= 0
+    for key in dic.keys():
+        acum+= dic[key]['data']
+
+    print('acum')
+    return acum
+
+def get_acum_by_list(path_to_file:str,files:list,angle:float=1):
+    radar= get_radar( path_to_file + files[0] )
+
+    acum= np.zeros( ( radar.nrays, radar.ngates) )
+    for _file in files[:10]:
+
+        acum+= est_rain_rate_z( path_to_file + _file )
+
+    return acum, path_to_file + files[0]
+
+
+
+
 # Classes
 ## Reading
 ## ========================================
@@ -740,7 +884,7 @@ class radar_manipulator(object):
         """PPI, Plan Position Indicator, correspondiente con la reflectividad registrada en cada una de las elevaciones y que se proyecta sobre el plano horizontal"""
         fig= plt.figure()
         _,cf= wl.vis.plot_ppi(radar_data,
-                                cmap='viris',fig=fig,   
+                                cmap='ocean',fig=fig,   
                                 vmin=vlim[0], vmax=vlim[1])
         plt.xlabel("xlabel")
         plt.ylabel("ylabel")
@@ -782,12 +926,11 @@ class radar_manipulator(object):
         ax.set_title('Cluttermap')
         plt.savefig("../data/img/clutter_map.png")
         
-    def plot_rhi(self):
-        """mantener la antena fija en una dirección (o azimut respecto al noreste) y realizar una lectura incrementando el ángulo de elevación de la antena. Es lo que se conoce como muestreo en Range Height Indicator (RHI)."""
-        pass
-
-    def plot_geo_ppi_art(self):
-        radar= pyart.io.read_sigmet('/home/arielcg/QRO_2015/RAW_NA_000_236_20150306035609')
+    def plot_geo_ppi_art(self,name):
+        try:
+            radar= pyart.io.read_sigmet(name)
+        except:
+            radar= pyart.io.read(name)
         display = pyart.graph.RadarMapDisplay(radar)
 
         # Setting projection and ploting the second tilt
@@ -802,6 +945,7 @@ class radar_manipulator(object):
 
         # Indicate the radar location with a point
         display.plot_point(radar.longitude['data'][0], radar.latitude['data'][0])
+        plt.savefig("prueba")
     
     def plot_rain_gauge_locations(self,acum_data:np.ndarray,figsize=(12,12))->None:
         """Routine verification measures for radar-based precipitation estimates
@@ -849,6 +993,21 @@ class radar_manipulator(object):
 
         return radar_at_gages, x,y,binx,biny,binx_nn,biny_nn
 
+
+    def radar_bin_precipitation_estimates(self,data, rnge, azimuth, sitecoords,nnear=1,epsg=4326):
+        proj= wl.georef.epsg_to_osr(epsg)
+        x,y= get_project_trasnform(FILEBASE, epsg)
+
+        polarneighbs= wl.verify.PolarNeighbours(rnge,azimuth,sitecoords,proj,x,y,nnear=nnear)
+
+        radar_at_gages= polarneighbs.extract( data )
+        binx, biny = polarneighbs.get_bincoords()
+        binx_nn, biny_nn= polarneighbs.get_bincoords_at_points()
+
+        return radar_at_gages,x,y,binx,biny,binx_nn,biny_nn
+
+        
+
 def get_project_trasnform(file:str,epsg:int)->tuple:
     """Return the lon and lat transformation of a file to as pesg
 
@@ -872,8 +1031,9 @@ def get_project_trasnform(file:str,epsg:int)->tuple:
 
     return np.array(lon),np.array(lat)
 
+
 #########################
-# p='/home/arielcg/Documentos/Tesis/src/data/radar/2015/03/radar_2015_03_12.npz'
+
 # radar_manipulator= create_radar_manipulator()
 # #radar_manipulator.plot_ppi_art("prueba",np.load(p),[0,100],'.')
 # #radar_manipulator.plot_rain_gauge_locations(np.load(p))
@@ -882,3 +1042,6 @@ def get_project_trasnform(file:str,epsg:int)->tuple:
 # df= pd.DataFrame([radar_at_gages, x,y]).transpose()
 # df.to_csv("../data/precipitation/prueba.csv",index=False,header=['rain','lon','lat'])
 
+# path_to_data= "/home/arielcg/QRO_2016/"
+# path2save= "/home/arielcg/Documentos/Tesis/src/data/radar/"
+# radar_acum_year(path_to_data,path2save,'2016')
