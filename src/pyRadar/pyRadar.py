@@ -86,6 +86,7 @@ import numpy.ma as ma
 from collections import OrderedDict
 import datetime
 import pandas as pd
+import re
 
 # Graphical libraries
 # ==================
@@ -93,6 +94,7 @@ import matplotlib.pyplot as plt
 from pyproj import CRS
 from pyproj import Transformer  
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 # System libraries
 # =================
@@ -134,16 +136,16 @@ def get_dict_of_data_path(path_to_data:str)->dict:
 
     orderDicData= {}
 
-    for key, values in orderDicMon.items():
+    for month, values in orderDicMon.items():
         orderDicDay= {}
         for value in values:
             day= value[21:23]
             try:
-                orderDicDay[day].append(value)
+                orderDicDay[day].append(path_to_data + '/' + value)
             except:
                 orderDicDay[day] = []
-                orderDicDay[day].append(value)
-        orderDicData[key]= orderDicDay
+                orderDicDay[day].append(path_to_data + '/' + value)
+        orderDicData[month]= orderDicDay
 
     return orderDicData
 
@@ -189,7 +191,6 @@ def get_word_length_until(word:str,symbol:str,inverse:bool=True)->int:
             return i + 1
         continue
 
-
 def get_basenames_of(words:list,word_length:int)->list:
     """Return the basenames of radar data without the date information.
 
@@ -205,6 +206,18 @@ def get_basenames_of(words:list,word_length:int)->list:
         if ( word[:word_length] not in basenames ):
             basenames.append(word[:word_length])
     return basenames
+
+def get_path_files(root:str, rex:str)->list:
+    """Return a list of paths whit base in root and the regular expresion given
+
+    :param root: Root path
+    :type root: str
+    :param re: Regular expresion
+    :type rex: str
+    :return: List of paths
+    :rtype: list
+    """
+    return [root + string for string in os.listdir(root) if re.match(rex,string)]
 
 # Data reading and processing Wradlib
 # ========================================
@@ -813,8 +826,7 @@ def radar_acum_year(path_to_data:str,path_to_save:str,year:str,month:str='',rada
             print(dict_axu)
             radar.add_field('reflectivity',dict_axu,replace_existing=True)
             pyart.io.write_cfradial(path_to_save+'QRO_{}_{}.nc',format(year,key_month), radar)
-        
-            
+                   
 def get_acum_by_path(path2data:str,files:list,shape:tuple)->np.ndarray:
     acum= np.zeros(shape)
     for file in files[:3]:
@@ -861,9 +873,6 @@ def get_acum_by_list(path_to_file:str,files:list,angle:float=1):
         acum+= est_rain_rate_z( path_to_file + _file )
 
     return acum, path_to_file + files[0]
-
-
-
 
 # Classes
 ## Reading
@@ -926,19 +935,29 @@ class radar_manipulator(object):
         ax.set_title('Cluttermap')
         plt.savefig("../data/img/clutter_map.png")
         
-    def plot_geo_ppi_art(self,name):
+    def plot_geo_ppi_art(self,acum_data:np.ndarray):
         try:
-            radar= pyart.io.read_sigmet(name)
+            radar= pyart.io.read_sigmet(acum_data)
         except:
-            radar= pyart.io.read(name)
+            radar= pyart.io.read(acum_data)
         display = pyart.graph.RadarMapDisplay(radar)
 
         # Setting projection and ploting the second tilt
         projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0],
-                                        central_longitude=radar.longitude['data'][0])
+         central_longitude=radar.longitude['data'][0])
 
-        fig = plt.figure(figsize=(6,6))
-        display.plot_ppi_map('reflectivity', vmin=-20, vmax=20,
+        fig = plt.figure( figsize=(6,6) )
+        
+        ax= fig.add_subplot(1,1,1,projection=projection)
+        
+        ax.add_feature(cfeature.COASTLINE)
+        ax.add_feature(cfeature.OCEAN, facecolor='#CCFEFF')
+        ax.add_feature(cfeature.LAKES, facecolor='#CCFEFF')
+        ax.add_feature(cfeature.RIVERS, edgecolor='#CCFEFF')
+        ax.add_feature(cfeature.LAND, facecolor='#FFE9B5')
+        ax.add_feature(cfeature.STATES, edgecolor='black', zorder=10)
+
+        display.plot_ppi_map('reflectivity', vmin=0, vmax=80,
                         resolution='10m', projection=projection,
                         fig=fig, lat_0=radar.latitude['data'][0],
                         lon_0=radar.longitude['data'][0])
@@ -1007,7 +1026,6 @@ class radar_manipulator(object):
         return radar_at_gages,x,y,binx,biny,binx_nn,biny_nn
 
         
-
 def get_project_trasnform(file:str,epsg:int)->tuple:
     """Return the lon and lat transformation of a file to as pesg
 

@@ -2,16 +2,12 @@ import sys
 sys.path.append('../')
 
 import src.pyRadar.pyRadar as pr
-from numpy import load
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
-from osgeo import osr
 import pyart
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-import pandas as pd
 
 path2root= "/home/arielcg/"
 path2save= "/home/arielcg/Documentos/Tesis/src/data/radar/"
@@ -29,6 +25,7 @@ def main():
     ploter= pr.radar_manipulator()
 
     ploter.plot_geo_ppi_art("/home/arielcg/Documentos/Tesis/src/data/radar/2015/QRO_ACUM_2015.nc")
+    #ploter.plot_rain_gauge_locations("/home/arielcg/Documentos/Tesis/src/data/radar/2015/QRO_ACUM_2015.nc")
 
 def print_square(name:str):
     rain= pyart.io.read(name)    
@@ -93,6 +90,7 @@ def acum_year():
         dic['reflectivity']= pr.get_dic_radar_data(acum,'Rainfall year acum')
         pr.set_radar(base_map, path2save+year+'/',
                         dic,'QRO_ACUM_{}'.format(year))
+
 def acum_month():
     for year, path in dict2data.items():
         data= pr.get_dict_of_data_path(path2root + path)
@@ -216,5 +214,16 @@ def plot():
     cgax.axis["lat"].label.set_pad(10)
     plt.savefig('prueba4')
 
+def anual_plot():
+    pass    
+
+def season_plot():
+    pass
+
+def trim_plot():
+    pass
+
 if __name__ == '__main__':
-    main()
+    #main()
+    paths= pr.get_path_files(path2root,"QRO_201[0-9]?")
+    print(pr.get_dict_of_data_path(paths[0]))
