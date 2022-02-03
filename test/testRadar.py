@@ -214,6 +214,21 @@ def plot():
     cgax.axis["lat"].label.set_pad(10)
     plt.savefig('prueba4')
 
+def month_plot():
+    years_paths= pr.get_list_of_path_files(path2root,"QRO_201[0-9]?")
+    for year_path in years_paths:
+        #print(year_path[-4:])
+        data= pr.get_dict_by_month(
+                pr.get_dict_of_data_path( year_path ) )
+        for month in data:
+            acum_rain, base_radar= pr.get_acum_by_list( data[month] )
+            print(acum_rain)
+            print(base_radar)
+        
+
+
+
+
 def anual_plot():
     pass    
 
@@ -225,5 +240,4 @@ def trim_plot():
 
 if __name__ == '__main__':
     #main()
-    paths= pr.get_path_files(path2root,"QRO_201[0-9]?")
-    print(pr.get_dict_of_data_path(paths[0]))
+    month_plot()

@@ -207,7 +207,7 @@ def get_basenames_of(words:list,word_length:int)->list:
             basenames.append(word[:word_length])
     return basenames
 
-def get_path_files(root:str, rex:str)->list:
+def get_list_of_path_files(root:str, rex:str)->list:
     """Return a list of paths whit base in root and the regular expresion given
 
     :param root: Root path
@@ -218,6 +218,24 @@ def get_path_files(root:str, rex:str)->list:
     :rtype: list
     """
     return [root + string for string in os.listdir(root) if re.match(rex,string)]
+
+def get_dict_by_month(dict_of_data:dict)->list:
+    """Return a dict of path files order by month where the key is the month and the values is the path file
+
+    :param dict_of_data: Dict of data orders by month and days
+    :type dict_of_data: dict
+    :return: A dict of files
+    :rtype: list
+    """
+    months= {}
+    for month in dict_of_data:
+        month_list= []
+        for day in dict_of_data[month]:
+            month_list+= dict_of_data[month][day]
+        if( len(month_list) == 0): continue
+        else: months[month]= month_list
+
+    return months
 
 # Data reading and processing Wradlib
 # ========================================
@@ -864,15 +882,25 @@ def get_acum_by_dict_radar(dic):
     print('acum')
     return acum
 
-def get_acum_by_list(path_to_file:str,files:list,angle:float=1):
-    radar= get_radar( path_to_file + files[0] )
+def get_acum_by_list(path_to_files:list, angle:float=1)->tuple:
+    """Return the acum of a list of radar data whit a given angle
 
+    :param path_to_files: Path to radar file
+    :type path_to_files: list
+    :param angle: Angle of radar in the scatter, defaults to 1
+    :type angle: float, optional
+    :return: Acum info of radar data list
+    :rtype: tuple
+    """
+    
+    
+    radar= get_radar( path_to_files[0] )
     acum= np.zeros( ( radar.nrays, radar.ngates) )
-    for _file in files[:10]:
 
-        acum+= est_rain_rate_z( path_to_file + _file )
+    for _file in path_to_files:
+        acum+= est_rain_rate_z( _file, angle=angle )
 
-    return acum, path_to_file + files[0]
+    return acum, path_to_files[0]
 
 # Classes
 ## Reading
@@ -1024,8 +1052,7 @@ class radar_manipulator(object):
         binx_nn, biny_nn= polarneighbs.get_bincoords_at_points()
 
         return radar_at_gages,x,y,binx,biny,binx_nn,biny_nn
-
-        
+       
 def get_project_trasnform(file:str,epsg:int)->tuple:
     """Return the lon and lat transformation of a file to as pesg
 
