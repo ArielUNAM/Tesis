@@ -27,7 +27,7 @@ def main():
     #ploter.plot_rain_gauge_locations("/home/arielcg/Documentos/Tesis/src/data/radar/2015/QRO_ACUM_2015.nc")
 
 def pruebas_multiplot():
-    radar_name= "/home/arielcg/Documentos/Tesis/src/data/radar/2015/qro_radar_acum.cn"
+    radar_name= "/home/arielcg/Documentos/Tesis/src/data/radar/2017/qro_radar_acum.nc"
     radar= pr.get_radar(radar_name)
     radar_subplots= list( radar.fields.keys() )
 
@@ -65,26 +65,39 @@ def plot(radar,display,fig,n,radar_subplots,projection):
             print(radar_subplots[i])
             continue
 
- 
-def acum_month_2():
-    for year, path in dict2data.items():
-        data= pr.get_dict_of_data_path(path2root + path)
-        for mes in data.keys():
-            dic= {}
-            acum= np.zeros((360,921))
-            for dia in data[mes].keys():
-                rain, radar_str= pr.get_acum_by_list( path2root + path, data[mes][dia] )
-                dic['day_{}'.format(dia)]= pr.get_dic_radar_data( rain, 'Rainfall daily acum')
-                acum+= rain
-            
-            if( data[mes].keys() ):
-                dic['reflectivity']= pr.get_dic_radar_data(acum,'Rainfall month acum')
-                dic['month_{}'.format(mes)]= pr.get_dic_radar_data(acum,'Rainfall month acum')
-                pr.set_radar(radar_str,path2save+year+'/'+mes+'/',
-                            dic,'QRO_ACUM_{}{}'.format(year,mes))
+def acum_year():
+    #Obtención de los archivos del 2017
+    path= pr.get_list_of_path_files( path2root, "QRO_2017")
+    files= pr.get_dict_of_data_path( path[0] ) 
+
+    t_acum= {}
+    for month in files.keys():
+        print(f"Start month {month}")
+        m_acum= None
+        for day in files[ month ].keys():
+            for f in files[ month ][ day ][:2]:
+                
+                s, acum= pr.est_rain_rate_z( f )
+
+                if( m_acum is None ):
+                    m_acum= np.zeros( s )
+                
+                m_acum+= acum
+        if(  files[ month ]  ):
+            m_radar= pr.get_dic_radar_data( m_acum, f"MONTH_ACUM_{month}" )
+            t_acum[month]= m_radar
+
+    radar_base= "/home/arielcg/QRO_2017/RAW_NA_000_236_20170425233109"
+    pr.set_radar(radar_base,'.',t_acum,"QRO_ACUM_2017")
+
     
 
+
+
+    
+ 
 if __name__ == '__main__':
     #main()
     #month_acum()
     pruebas_multiplot()
+    #acum_year()

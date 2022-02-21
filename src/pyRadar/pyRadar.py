@@ -219,7 +219,7 @@ def get_list_of_path_files(root:str, rex:str)->list:
     """
     return [root + string for string in os.listdir(root) if re.match(rex,string)]
 
-def get_dict_by_month(dict_of_data:dict)->list:
+def get_dict_by_month(dict_of_data:dict)->dict:
     """Return a dict of path files order by month where the key is the month and the values is the path file
 
     :param dict_of_data: Dict of data orders by month and days
@@ -237,6 +237,21 @@ def get_dict_by_month(dict_of_data:dict)->list:
 
     return months
 
+def get_acum_files(path_to_read:str,rex:str)->dict:
+    """Obtenemos todos los acumulados generados por los algoritmos
+
+    :param path_to_read: [description]
+    :type path_to_read: str
+    :return: [description]
+    :rtype: list
+    """
+    years= [path_to_read + _year + '/' for _year in  os.listdir(path_to_read) ]
+    
+    dic={}
+    for year in years:
+        dic[year[-5:-1]]=  [year + _file for _file in os.listdir(year) if re.match(rex,_file)]
+    return dic
+
 # Data reading and processing Wradlib
 # ========================================
 def est_rain_rate_z(path_to_data,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True,bool_vel:bool= True,angle:float=1):
@@ -245,9 +260,9 @@ def est_rain_rate_z(path_to_data,pia_type:str='default',tr1:float=12,n_p:float=1
     if( get_elevation(iris_data,True) < angle ):
         dBZ, pia= data_processing_chain(iris_data,pia_type,tr1,n_p,tr2,)
         velocity= get_velocity(iris_data,bool_vel)
-        return reflectivity_to_rainfall(dBZ+pia,velocity,a,b,intervalos,mult)
+        return np.shape(velocity), reflectivity_to_rainfall(dBZ+pia,velocity,a,b,intervalos,mult)
     
-    return np.array([])
+    return (None,None),np.array([])
 
 def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True, zeros:bool=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
@@ -434,7 +449,7 @@ def get_range(iris_data:OrderedDict) ->float:
     gate_0 =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_first_bin']/100)
     gate_nbin =(iris_data['ingest_header']['task_configuration']['task_range_info']['range_last_bin']/100)
     gate_size=round((gate_nbin - gate_0)/(nbins))
-    return gate_0 + gate_size * np.arange(nbins, dtype='float32')
+    return gate_0 + gate_size * np.arange(nbins, dtype='float64')
 
 def get_version(iris_data:OrderedDict)->str:
     """Retur the versión of iris
@@ -846,14 +861,14 @@ def radar_acum_year(path_to_data:str,path_to_save:str,year:str,month:str='',rada
             pyart.io.write_cfradial(path_to_save+'QRO_{}_{}.nc',format(year,key_month), radar)
                    
 def get_acum_by_path(path2data:str,files:list,shape:tuple)->np.ndarray:
-    acum= np.zeros(shape)
+    acum= np.zeros(shape, dtype=np.float64)
     for file in files[:3]:
         rain= est_rain_rate_z( path2data + file)
         acum+= rain
 
     return acum
 
-def set_radar(path_to_file,path_to_save,dic,name):
+def set_radar(path_to_file:str,path_to_save:str,dic,name):
     radar= get_radar(path_to_file)
     
     keys= radar.fields.copy()
@@ -866,13 +881,46 @@ def set_radar(path_to_file,path_to_save,dic,name):
     
     pyart.io.write_cfradial(path_to_save+name+'.nc', radar)
 
-def get_dic_radar_data(data,long_name):
-    dic= {'units':'dBZ',
+def add_field_to_radar(base_radar:str,field:dict,name:str,radar=None)->pyart:
+    """[summary]
+
+    :param base_radar: [description]
+    :type base_radar: str
+    :param field: [description]
+    :type field: dict
+    :param name: [description]
+    :type name: str
+    :param radar: [description], defaults to None
+    :type radar: [type], optional
+    :return: [description]
+    :rtype: pyart
+    """
+    if( radar is None):
+        radar= get_radar(base_radar)
+
+        keys= radar.fields.copy().keys()
+        for key in keys:
+            radar.fields.pop(key)
+    
+    radar.add_field( name, field,replace_existing=True)
+    #pyart.io.write_cfradial(path_to_save+name+'.nc',radar)
+    return radar
+
+def get_dic_radar_data(data:np.array,long_name:str)->dict:
+    """Return a base dict that can be added to radar file
+
+    :param data: Matrix data
+    :type data: np.array
+    :param long_name: Name of the data to add
+    :type long_name: str
+    :return: A base dict
+    :rtype: dict
+    """
+    return {'units':'dBZ',
           'standard_name': 'equivalent_reflectivity_factor',
           'long_name':long_name,
           'coordinates': 'elevation azimuth range',
           'data':data}
-    return dic
 
 def get_acum_by_dict_radar(dic):
     acum= 0
@@ -882,7 +930,7 @@ def get_acum_by_dict_radar(dic):
     print('acum')
     return acum
 
-def get_acum_by_list(path_to_files:list, angle:float=1)->tuple:
+def get_acum_by_list(path_to_files:list,base_radar:str, angle:float=1)->tuple:
     """Return the acum of a list of radar data whit a given angle
 
     :param path_to_files: Path to radar file
@@ -894,21 +942,13 @@ def get_acum_by_list(path_to_files:list, angle:float=1)->tuple:
     """
     
     
-    radar= get_radar( path_to_files[0] )
-    acum= np.zeros( ( radar.nrays, radar.ngates) )
+    radar= get_radar( base_radar )
+    acum= np.zeros( ( radar.nrays, radar.ngates), dtype=np.float64 )
 
     for _file in path_to_files:
         acum+= est_rain_rate_z( _file, angle=angle )
 
-    return acum, path_to_files[0]
-
-# Classes
-## Reading
-## ========================================
-# class createRadarWL(radar_manipulator):
-#     def __init__(self,filename:str) -> None:
-#         super().__init__()
-#         self.iris= get_iris_data(filename)
+    return acum
 
     
 ## Plotting
@@ -988,7 +1028,7 @@ class radar_manipulator(object):
         display.plot_ppi_map('reflectivity', vmin=0, vmax=80,
                         resolution='10m', projection=projection,
                         fig=fig, lat_0=radar.latitude['data'][0],
-                        lon_0=radar.longitude['data'][0])
+                        lon_0=radar.longitude['data'][0],ax=ax)
 
         # Indicate the radar location with a point
         display.plot_point(radar.longitude['data'][0], radar.latitude['data'][0])
