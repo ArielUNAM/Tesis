@@ -72,6 +72,8 @@
 
 # Radar libraries
 # ================
+import itertools
+from tkinter import Y
 from wradlib.util import get_wradlib_data_file
 import wradlib as wl
 import pyart
@@ -95,6 +97,7 @@ from pyproj import CRS
 from pyproj import Transformer  
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from matplotlib import cm
 
 # System libraries
 # =================
@@ -118,13 +121,26 @@ PARAM_VEL= [0,1]
 PARAM_TRANS=[74,1.6,True]
 ELEVATION= 1
 FILEBASE= '/home/arielcg/Documentos/Tesis/src/data/base/geoBase.csv'
+CMAP= 'GnBu'
 
 # Acquisition and ordering
 # ========================================
-def get_dict_of_data_path(path_to_data:str)->dict:
-    """Returns a dictionary of dictionaries that stores the location of the data classified by month and day; having this data as the keys.
+def get_path_files(root_of_dirs:str, rex:str)->list:
+    """Returns a list of paths located at the root and matching the regular expression. I suppose that your files are organizated in folders.
 
-    :param path_to_data: Path to data radar
+    :param root: Path of the directory files
+    :type root: str
+    :param re: Regular expression of folder or files
+    :type rex: str
+    :return: List of paths located at the root and matching the regular expression
+    :rtype: list
+    """
+    return [root_of_dirs + string for string in os.listdir(root_of_dirs) if re.match(rex,string)]
+
+def get_files_from_path(path_to_data:str)->dict:
+    """Returns a dictionary of dictionaries that stores the location of the data classified by month and day. This info is the key
+
+    :param path_to_data: Path of the data 
     :type path_to_data: str
     :return: A dictionary of dictionaries of data radar
     :rtype: dict
@@ -191,78 +207,46 @@ def get_word_length_until(word:str,symbol:str,inverse:bool=True)->int:
             return i + 1
         continue
 
-def get_basenames_of(words:list,word_length:int)->list:
-    """Return the basenames of radar data without the date information.
-
-    :param words: Names of all data radar.
-    :type words: list
-    :param word_length: Number of positions where date appears.
-    :type word_length: int
-    :return: basenames of radar data without the date information.
-    :rtype: list
-    """
-    basenames=[]
-    for word in words:
-        if ( word[:word_length] not in basenames ):
-            basenames.append(word[:word_length])
-    return basenames
-
-def get_list_of_path_files(root:str, rex:str)->list:
-    """Return a list of paths whit base in root and the regular expresion given
-
-    :param root: Root path
-    :type root: str
-    :param re: Regular expresion
-    :type rex: str
-    :return: List of paths
-    :rtype: list
-    """
-    return [root + string for string in os.listdir(root) if re.match(rex,string)]
-
-def get_dict_by_month(dict_of_data:dict)->dict:
-    """Return a dict of path files order by month where the key is the month and the values is the path file
-
-    :param dict_of_data: Dict of data orders by month and days
-    :type dict_of_data: dict
-    :return: A dict of files
-    :rtype: list
-    """
-    months= {}
-    for month in dict_of_data:
-        month_list= []
-        for day in dict_of_data[month]:
-            month_list+= dict_of_data[month][day]
-        if( len(month_list) == 0): continue
-        else: months[month]= month_list
-
-    return months
-
-def get_acum_files(path_to_read:str,rex:str)->dict:
-    """Obtenemos todos los acumulados generados por los algoritmos
-
-    :param path_to_read: [description]
-    :type path_to_read: str
-    :return: [description]
-    :rtype: list
-    """
-    years= [path_to_read + _year + '/' for _year in  os.listdir(path_to_read) ]
-    
-    dic={}
-    for year in years:
-        dic[year[-5:-1]]=  [year + _file for _file in os.listdir(year) if re.match(rex,_file)]
-    return dic
-
 # Data reading and processing Wradlib
 # ========================================
-def est_rain_rate_z(path_to_data,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True,bool_vel:bool= True,angle:float=1):
+def est_rain_rate_z(path_to_data:str,pia_type:str='default',tr1:float=12,n_p:float=12,tr2:float=1.1,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True,bool_vel:bool= True,angle:float=1)->tuple:
+    """Return the acum from a file
+
+    :param path_to_data: Path to file data
+    :type path_to_data: str
+    :param pia_type: Attenuation correction, defaults to 'default'
+    :type pia_type: str, optional
+    :param tr1: _description_, defaults to 12
+    :type tr1: float, optional
+    :param n_p: _description_, defaults to 12
+    :type n_p: float, optional
+    :param tr2: _description_, defaults to 1.1
+    :type tr2: float, optional
+    :param a: _description_, defaults to 200
+    :type a: float, optional
+    :param b: _description_, defaults to 1.6
+    :type b: float, optional
+    :param intervalos: _description_, defaults to 390
+    :type intervalos: int, optional
+    :param mult: _description_, defaults to True
+    :type mult: bool, optional
+    :param bool_vel: _description_, defaults to True
+    :type bool_vel: bool, optional
+    :param angle: _description_, defaults to 1
+    :type angle: float, optional
+    :return: _description_
+    :rtype: _type_
+    """
     iris_data= get_iris_data( path_to_data )
 
     if( get_elevation(iris_data,True) < angle ):
+        
         dBZ, pia= data_processing_chain(iris_data,pia_type,tr1,n_p,tr2,)
         velocity= get_velocity(iris_data,bool_vel)
+
         return np.shape(velocity), reflectivity_to_rainfall(dBZ+pia,velocity,a,b,intervalos,mult)
-    
-    return (None,None),np.array([])
+
+    return False, False
 
 def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float = 1.6,intervalos:int = 390,mult=True, zeros:bool=True)->np.ndarray:
     """Converting Reflectivity to Rainfall
@@ -568,9 +552,20 @@ def get_radar(path_radar:str)->pyart.core.radar.Radar:
     except:
         return pyart.io.read(path_radar)
 
+def get_mask_from_data( data:np.arange )->np.ma.array:
+    """Return a masket data array for better presentation
 
-# Data reading and processing pyart
-# ========================================
+    :param data: Data to assing mask
+    :type data: np.arange
+    :return: A maskedArray
+    :rtype: np.ma.array
+    """
+    maks_ind= np.where( data <= np.nanmin( data ) )
+    data[ maks_ind ]= np.nan
+    return np.ma.array( data, mask= np.isnan( data ) )
+
+def get_metadata( iris_data:OrderedDict )->tuple:
+    return get_range( iris_data ), get_azimuth( iris_data ), get_coordinates( iris_data )
 
 # Automatic processing
 # ========================================
@@ -698,7 +693,7 @@ def acum_daily(path2root:str,path2save:str,dict2data:dict):
     :type dict2data: dict
     """
     for year, path in dict2data.items():
-        dic_of_data= get_dict_of_data_path(path2root+path)
+        dic_of_data= get_files_from_path(path2root+path)
         generate_directory_structure(dic_of_data,year,path2save)
         for month in dic_of_data.keys():
         #for month in tqdm(months):
@@ -868,6 +863,19 @@ def get_acum_by_path(path2data:str,files:list,shape:tuple)->np.ndarray:
 
     return acum
 
+def clear_radar(radar:pyart.core.radar.Radar)->pyart.core.radar.Radar:
+    """Return a radar without fields
+
+    :param radar: A base radar with fields
+    :type radar: pyart.core.radar.Radar
+    :return: A base radar witout fields
+    :rtype: pyart.core.radar.Radar
+    """
+    keys= radar.fields.copy().keys()
+    for key in keys:
+        radar.fields.pop( key )
+    return radar
+
 def set_radar(path_to_file:str,path_to_save:str,dic,name):
     radar= get_radar(path_to_file)
     
@@ -906,7 +914,7 @@ def add_field_to_radar(base_radar:str,field:dict,name:str,radar=None)->pyart:
     #pyart.io.write_cfradial(path_to_save+name+'.nc',radar)
     return radar
 
-def get_dic_radar_data(data:np.array,long_name:str)->dict:
+def numpy_to_dict(data:np.array,long_name:str, short_name='equivalent_reflectivity_factor',units='dBZ')->dict:
     """Return a base dict that can be added to radar file
 
     :param data: Matrix data
@@ -916,11 +924,11 @@ def get_dic_radar_data(data:np.array,long_name:str)->dict:
     :return: A base dict
     :rtype: dict
     """
-    return {'units':'dBZ',
-          'standard_name': 'equivalent_reflectivity_factor',
+    return {'units':units,
+          'standard_name': short_name,
           'long_name':long_name,
           'coordinates': 'elevation azimuth range',
-          'data':data}
+          'data':data }
 
 def get_acum_by_dict_radar(dic):
     acum= 0
@@ -953,146 +961,293 @@ def get_acum_by_list(path_to_files:list,base_radar:str, angle:float=1)->tuple:
     
 ## Plotting
 ## ========================================
-class radar_manipulator(object):
-    def __init__(self)->None:
-        pass
-
-    def plot_ppi_wrl(self,name,radar_data:np.ndarray,vlim:list,path:str):
-        """PPI, Plan Position Indicator, correspondiente con la reflectividad registrada en cada una de las elevaciones y que se proyecta sobre el plano horizontal"""
-        fig= plt.figure()
-        _,cf= wl.vis.plot_ppi(radar_data,
-                                cmap='ocean',fig=fig,   
-                                vmin=vlim[0], vmax=vlim[1])
-        plt.xlabel("xlabel")
-        plt.ylabel("ylabel")
-        plt.title("title")
-        cf= plt.colorbar(cf, shrink=0.8)
-        cf.set_label("mm")
-        plt.grid(color="gray")
-        plt.savefig(path+name+"ppi_wrl.png")
-        
-    def plot_ppi_art(self,name,radar_data,vlim,path,source="/home/arielcg/QRO_2015/"):
-        fig= plt.figure()
-        radar= pyart.io.read_rsl(source+'RAW_NA_000_236_20150711000109')
-        level0= radar.extract_sweeps([0])
-
-        level0.add_field('acum',radar_data)
-        display= pyart.graph.RadarDisplay(level0)
-        ax= fig.add_subplot(111)
-        display.plot('acum', 0, title="title", vmin=vlim[0],vmax=vlim[1],  colorbar_label='', ax=ax)
-        display.plot_range_ring(radar.range['data'][-1]/1000., ax=ax)
-        plt.savefig(path+name+"ppi_art.png")
-
-    def plot_clutter_wrl(self,reflectivity:np.ndarray,wsize=5,
-                            thrsnorain=0.,
-                            tr1=6.,
-                            n_p=8,
-                            tr2=1.3):
-        clmap= get_clutter(reflectivity,
-                                wsize=5,
-                                thrsnorain=0.,
-                                tr1=6.,
-                                n_p=8,
-                                tr2=1.3)
-        fig = plt.figure(figsize=(12,8))
-        ax = fig.add_subplot(121)
-        ax, _ = vis.plot_ppi(reflectivity, ax=ax)
-        ax.set_title('Reflectivity')
-        ax = fig.add_subplot(122)
-        ax, _ = vis.plot_ppi(clmap, ax=ax)
-        ax.set_title('Cluttermap')
-        plt.savefig("../data/img/clutter_map.png")
-        
-    def plot_geo_ppi_art(self,acum_data:np.ndarray):
-        try:
-            radar= pyart.io.read_sigmet(acum_data)
-        except:
-            radar= pyart.io.read(acum_data)
-        display = pyart.graph.RadarMapDisplay(radar)
-
-        # Setting projection and ploting the second tilt
-        projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0],
-         central_longitude=radar.longitude['data'][0])
-
-        fig = plt.figure( figsize=(6,6) )
-        
-        ax= fig.add_subplot(1,1,1,projection=projection)
-        
-        ax.add_feature(cfeature.COASTLINE)
-        ax.add_feature(cfeature.OCEAN, facecolor='#CCFEFF')
-        ax.add_feature(cfeature.LAKES, facecolor='#CCFEFF')
-        ax.add_feature(cfeature.RIVERS, edgecolor='#CCFEFF')
-        ax.add_feature(cfeature.LAND, facecolor='#FFE9B5')
-        ax.add_feature(cfeature.STATES, edgecolor='black', zorder=10)
-
-        display.plot_ppi_map('reflectivity', vmin=0, vmax=80,
-                        resolution='10m', projection=projection,
-                        fig=fig, lat_0=radar.latitude['data'][0],
-                        lon_0=radar.longitude['data'][0],ax=ax)
-
-        # Indicate the radar location with a point
-        display.plot_point(radar.longitude['data'][0], radar.latitude['data'][0])
-        plt.savefig("prueba")
+def __plot_reflectivity(data, title, filename, fig ):
     
-    def plot_rain_gauge_locations(self,acum_data:np.ndarray,figsize=(12,12))->None:
-        """Routine verification measures for radar-based precipitation estimates
+    projection = ccrs.LambertConformal(central_latitude=data.latitude['data'][0], central_longitude=data.longitude['data'][0])
 
-        :param acum_data: Archivo a leer
-        :type acum_data: np.ndarray
-        :param figsize: Tamaño de la figura, defaults to (12,12)
-        :type figsize: tuple, optional
-        """
-        _, x,y,binx,biny,binx_nn,biny_nn= self.bin_precipitation_estimates(acum_data)
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(121)
-        ax.plot(binx, biny, 'r+')
-        ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
-        ax.plot(x, y, 'bo')
-        ax.axis('tight')
-        ax.set_aspect("equal")
-        plt.title("Full view")
-        ax = fig.add_subplot(122)
-        ax.plot(binx, biny, 'r+')
-        ax.plot(binx_nn, biny_nn, 'b+', markersize=10)
-        ax.plot(x, y, 'bo')
-        plt.xlim(binx_nn.min()-5, binx_nn.max()+5)
-        plt.ylim(biny_nn.min()-7, biny_nn.max()+8)
-        ax.set_aspect("equal")
-        txt = plt.title("Zoom into rain gauge locations")
-        plt.tight_layout()
-        plt.savefig("../data/img/rgl.png")
-        
-    def bin_precipitation_estimates(self,acum_data,nnear=1,epsg=4326,source='/home/arielcg/QRO_2015/',filename='RAW_NA_000_236_20150711000109'):
-        
-        iris= get_iris_data(source+filename)
-        r= get_range(iris)
-        az = np.linspace(0,360,361)[0:-1]
-        sitecoords= get_coordinates(iris)
+    ax = fig.add_subplot(1,1,1, projection=projection)
+    lat_0= data.latitude['data'][0]
+    lon_0= data.longitude['data'][0]
 
-        proj= wl.georef.epsg_to_osr(epsg)
-        x,y= get_project_trasnform(FILEBASE, epsg)
+    display= pyart.graph.RadarMapDisplay( data )
+    display.plot_ppi_map('reflectivity',0,
+                #width=100, height=100,
+                lat_0=lat_0,
+                lon_0=lon_0,
+                resolution='10m',
+                vmin=0,
+                projection=projection,
+                fig=fig, ax=ax,
+                #title=title,
+                cmap=cm.get_cmap(CMAP)
+                )
+    
+    plt.savefig(filename)
 
-        polarneighbs= wl.verify.PolarNeighbours(r,az,sitecoords,proj,x,y,nnear=nnear)
+def plot_reflectivity(data, title:str, bar_label:str='', filename:str='plot_func', radarFrom:bool=False)->None:
+    """Save a tipycal reflectivity plot from 
+    https://docs.wradlib.org/en/stable/notebooks/fileio/wradlib_load_rainbow_example.html?highlight=reflectivity
 
-        radar_at_gages= polarneighbs.extract( acum_data['data'] )
-        binx, biny = polarneighbs.get_bincoords()
-        binx_nn, biny_nn= polarneighbs.get_bincoords_at_points()
+    :param data: Numpy matrix of data to plot
+    :type data: np.arange
+    :param title: Title of the plot
+    :type title: str
+    :param bar_label: Name at bar
+    :type bar_label: str
+    :param filename: Name of plot, defaults to 'plot_func'
+    :type filename: str, optional
 
-        return radar_at_gages, x,y,binx,biny,binx_nn,biny_nn
+    >>> iris= get_iris_data( filename )
+    >>> reflectivity= get_reflectivity( iris )
+    >>> plot_reflectivity( reflectivity, 'Titulo', 'Etiqueta', 'Filename')
+    >>> radar= get_radar( filename )
+    >>> plot_reflectivity( radar , 'Titulo', 'Filename', radarFrom= True)
 
+    """
+    fig= plt.figure(figsize=(10,6))
+    if( radarFrom ):
+        return __plot_reflectivity(data, title, filename, fig )
+    
+    ma= get_mask_from_data( data )
 
-    def radar_bin_precipitation_estimates(self,data, rnge, azimuth, sitecoords,nnear=1,epsg=4326):
-        proj= wl.georef.epsg_to_osr(epsg)
-        x,y= get_project_trasnform(FILEBASE, epsg)
+    ax, pm = wl.vis.plot_ppi(ma, fig=fig, proj='cg',cmap=CMAP)#cmap='winter')
+    caax = ax.parasites[0]
+    paax = ax.parasites[1]
+    ax.parasites[1].set_aspect('equal')
 
-        polarneighbs= wl.verify.PolarNeighbours(rnge,azimuth,sitecoords,proj,x,y,nnear=nnear)
+    plt.title(title, y=1.08)
+    cbar = plt.gcf().colorbar(pm, pad=0.075, ax=paax, )
+    caax.set_xlabel('Rango [km]')
+    caax.set_ylabel('Rango [km]')
+    plt.text(1.0, 1.05, 'azimuth', transform=caax.transAxes, va='bottom', ha='right')
+    cbar.set_label(bar_label)
+    
+    plt.savefig(filename)
 
-        radar_at_gages= polarneighbs.extract( data )
-        binx, biny = polarneighbs.get_bincoords()
-        binx_nn, biny_nn= polarneighbs.get_bincoords_at_points()
+def plot_clutter( data, suptitle:str, filename:str,data_title:str="Datos con desorden",clutter_title:str= "Filtro Gabella", xlabel:str="Rango [km]", ylabel:str="Rango [km]", clmap=None )->None:
+    """Plot two graphs, the first one is the reflectivity data, and the second one is the result afther apply a gabella filter
 
-        return radar_at_gages,x,y,binx,biny,binx_nn,biny_nn
-       
+    :param data: Raw data
+    :type data: np.array
+    :param suptitle: Title of the plot
+    :type suptitle: str
+    :param filename: Name of the file
+    :type filename: str
+    :param data_title: Title of the raw data, defaults to "Datos con desorden"
+    :type data_title: str, optional
+    :param clutter_title: Title of the clutter filter, defaults to "Filtro Gabella"
+    :type clutter_title: str, optional
+    :param xlabel: Label from the X-axis , defaults to "Rango [km]"
+    :type xlabel: str, optional
+    :param ylabel: Label from the Y-axis, defaults to "Rango [km]"
+    :type ylabel: str, optional
+    :param clmap: Can use other clutter filters and pass the result, defaults to None
+    :type clmap: _type_, optional
+
+    >>> iris= get_iris_data( filename )
+    >>> reflectivity= get_reflectivity( iris )
+    >>> plot_clutter( reflectivity, "Filtro Gabella para disminuir el ruido", "gabellaWL")
+
+    """
+    
+    fig= plt.figure(figsize=(10,6))
+
+    #Fist figure
+    #Reflectivity
+    ax= fig.add_subplot(121) 
+    ma= get_mask_from_data( data )
+    ax, pm= wl.vis.plot_ppi( ma, ax=ax, cmap=CMAP)
+    ax.set_title( data_title, y=1.05)
+
+    plt.grid(True)
+
+    #Second plot
+    #Gabella clutter
+    ax= fig.add_subplot(122) 
+    if( clmap is None ):
+        clmap= wl.clutter.filter_gabella( data, 
+                            wsize= 5, thrsnorain=0.,
+                            tr1=6., tr2=1.3,
+                            n_p=8.)
+    ax, pm= wl.vis.plot_ppi( clmap, ax=ax, cmap='GnBu_r' )
+    ax.set_title(clutter_title,y=1.05)
+
+    plt.grid(True)
+
+    #Set labels and titles
+    plt.suptitle( suptitle, y=0.92)
+    fig.text(0.5, 0.15, xlabel, ha='center')
+    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
+
+    plt.savefig( filename )
+
+def __plot_beam(radar, beam, title, filename, fig):
+    beam= [-102.9,19.9]
+    projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
+
+    ax = fig.add_subplot(1,1,1, projection=projection)
+    lat_0= radar.latitude['data'][0]
+    lon_0= radar.longitude['data'][0]
+
+    display= pyart.graph.RadarMapDisplay( radar )
+    ax= display.plot_ppi_map( 'reflectivity', 0,
+                lat_0=lat_0,
+                lon_0=lon_0,
+                resolution='10m',
+                vmin=0,
+                projection=projection,
+                fig=fig, ax=ax,
+                #title=title,
+                cmap=cm.get_cmap(CMAP))
+
+    display.plot_line_geo([lon_0,beam[0]],[lat_0,beam], color='black')
+    plt.savefig(filename)
+
+def plot_beam( data, beam, title, bar_label, filename, xlabel="Rango [km]", ylabel="Rango [km]", radarFrom=False ):
+    """Plot a beam
+
+    :param data: _description_
+    :type data: _type_
+    :param beam: _description_
+    :type beam: _type_
+    :param title: _description_
+    :type title: _type_
+    :param bar_label: _description_
+    :type bar_label: _type_
+    :param filename: _description_
+    :type filename: _type_
+    :param xlabel: _description_, defaults to "Rango [km]"
+    :type xlabel: str, optional
+    :param ylabel: _description_, defaults to "Rango [km]"
+    :type ylabel: str, optional
+    :param radarFrom: _description_, defaults to False
+    :type radarFrom: bool, optional
+    :return: _description_
+    :rtype: _type_
+    """
+    fig= plt.figure(figsize=(10,6))
+    if( radarFrom ):
+        return __plot_beam(data,beam,title,filename,fig)
+    ax, cf= wl.vis.plot_ppi( data, cmap=CMAP)
+
+    plt.plot(beam[0],beam[1],"-", color="black", lw=2)
+    plt.title( title, y=1.02)
+    plt.xlabel( xlabel ); plt.ylabel( ylabel )
+    plt.grid(color="grey")
+
+    cb= plt.colorbar( cf, shrink=0.8)
+    cb.set_label( bar_label )
+
+    plt.savefig(filename)
+                
+def plot_beams(data, mybeams, fig, filename, sub=111,title='Attenuation correction 2'):
+    ax = fig.add_subplot(sub)
+    labelsize=13
+    for beam in range(mybeams.start, mybeams.stop):
+        plt.plot(data[beam], label="{0} deg".format(beam))
+    plt.grid()
+    plt.text(0.99, 0.88, "Reflectivity along beams",
+            horizontalalignment='right',
+            transform = ax.transAxes, fontsize="large")
+    #plt.xlabel("range (km)", fontsize="large")
+    plt.ylabel("Reflectivity (dBZ)", fontsize="large")
+    plt.legend(loc="upper left")
+    ax.tick_params(axis='x', labelsize=labelsize)
+    ax.tick_params(axis='y', labelsize=labelsize)
+    plt.xlim(0,128)
+    plt.savefig(filename)
+
+def plot_pia(pia,fig, filename, sub=111, title=None, ylim=30):
+    ax = fig.add_subplot(sub)
+    labelsize=13
+    
+    plt.plot(pia.T)
+    plt.grid()
+    plt.ylim(0,ylim)
+    plt.ylabel("PIA (dB)", fontsize="large")
+    plt.xlabel("range (km)", fontsize="large")
+    plt.text(0.01, 0.88, title,
+            transform = ax.transAxes, fontsize="large")
+    ax.tick_params(axis='x', labelsize=labelsize)
+    ax.tick_params(axis='y', labelsize=labelsize)
+    plt.xlim(0,128)
+    
+    plt.tight_layout()
+    plt.savefig(filename)
+
+def __get_att_hb( data ):
+    return wl.atten.correct_attenuation_hb( data,
+    coefficients = dict(a=200, b=1.6, gate_length=1.0),
+    mode="warn",thrs=59. )
+
+def __get_att_hr( data ):
+    pia_harrison= wl.atten.correct_attenuation_hb( data,
+    coefficients = dict(a=200, b=1.6, gate_length=1.0),
+    mode="warn",thrs=59.)
+    pia_harrison[pia_harrison > 4.8] = 4.8
+    return pia_harrison
+
+def __get_att_kr( data ):
+    return wl.atten.correct_attenuation_constrained( data,
+    a_max=1.67e-4, a_min=2.33e-5, 
+    n_a=100, b_max=0.7, b_min=0.65, 
+    n_b=6, gate_length=1.,
+    constraints=[wl.atten.constraint_dbz],
+    constraint_args=[[59.0]])
+
+def __get_att_mk( data ):
+    return wl.atten.correct_attenuation_constrained( data,
+    a_max=1.67e-4, a_min=2.33e-5,
+    n_a=100, b_max=0.7,
+    b_min=0.65, n_b=6,
+    gate_length=1.,
+    constraints=[wl.atten.constraint_dbz,
+                 wl.atten.constraint_pia],
+    constraint_args=[[59.0],[20.0]])
+
+def plot_attenuation( data, beams, filename:str, ylim=30,pia_title:str="PIA according to Kraemer", beams_title:str="PIA according to Kraemer", type:str="kraemer"):
+    """Plot two figures
+
+    :param data: Raw data
+    :type data: np.arange
+    :param beams: Angles
+    :type beams: Tuple
+    :param filename: Name of the files
+    :type filename: str
+    :param ylim: Limits to pia plot, defaults to 30
+    :type ylim: int, optional
+    :param pia_title: Name of pia plot, defaults to "PIA according to Kraemer"
+    :type pia_title: str, optional
+    :param beams_title: Name of bemas plot, defaults to "PIA according to Kraemer"
+    :type beams_title: str, optional
+    :param type: Select the pia filtrer, defaults to "kraemer"
+    :type type: str, optional
+    :raises ValueError: Return the type of filtred select
+
+    >>> iris= get_iris_data( filename )
+    >>> reflectivity= get_reflectivity( iris )
+    >>> mybeams= slice(250, 255) 
+    >>> plot_attenuation( reflectivity, mybeams, filename )
+    """
+    fig= plt.figure( figsize=(10,6) )
+    fig.tight_layout() 
+    
+    if( type.__eq__( "kraemer" ) ):
+        pia= __get_att_kr( data )
+    elif( type.__eq__( "harrison" ) ):
+        pia= __get_att_hr( data )
+    elif( type.__eq__( "mkraemer" ) ):
+        pia= __get_att_mk( data )
+    elif( type.__eq__( "hitchfeld" ) ):
+        pia= __get_att_hb( data )
+    else:
+        raise ValueError( f"Pia {type} don't found")
+    plot_beams(data, beams, fig, filename, 211, pia_title)
+    plot_pia(pia[beams],fig, filename, 212, beams_title, ylim=ylim)
+
+## Others
+## ========================================
+
 def get_project_trasnform(file:str,epsg:int)->tuple:
     """Return the lon and lat transformation of a file to as pesg
 
@@ -1116,17 +1271,15 @@ def get_project_trasnform(file:str,epsg:int)->tuple:
 
     return np.array(lon),np.array(lat)
 
+def get_middle_points(X:list, Y:list)->tuple:
+    
+    new_X= []
+    new_Y= []
+    for i in range(1, len( X ) ):
+        x= ( X[i - 1] + X[i] ) / 2
+        y= ( Y[i - 1] + Y[i] ) / 2
+        new_X.append( x )
+        new_Y.append( y )
+    return list(itertools.product(new_X,new_Y))
 
-#########################
-
-# radar_manipulator= create_radar_manipulator()
-# #radar_manipulator.plot_ppi_art("prueba",np.load(p),[0,100],'.')
-# #radar_manipulator.plot_rain_gauge_locations(np.load(p))
-# radar_at_gages, x,y,_,_,_,_= radar_manipulator.bin_precipitation_estimates(np.load(p))
-# #print(radar_at_gages, x,y,binx,biny,binx_nn,biny_nn)
-# df= pd.DataFrame([radar_at_gages, x,y]).transpose()
-# df.to_csv("../data/precipitation/prueba.csv",index=False,header=['rain','lon','lat'])
-
-# path_to_data= "/home/arielcg/QRO_2016/"
-# path2save= "/home/arielcg/Documentos/Tesis/src/data/radar/"
-# radar_acum_year(path_to_data,path2save,'2016')
+    #Inteta obtener la mitad de la linea y luego la mitad de la linea y luego haces pares para que obtengas los medios 
