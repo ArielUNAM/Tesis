@@ -1301,7 +1301,7 @@ def plot_heat_map( gages:list , filename,  vmax=3000):
 
     plt.imshow( data, vmin=0, vmax=vmax, cmap='GnBu', aspect='auto' )
     
-    plt.colorbar()
+    plt.colorbar() 
     plt.savefig( filename )
     
 
