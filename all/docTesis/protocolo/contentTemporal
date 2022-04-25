@@ -1,0 +1,45 @@
+
+\chapter{El agua y su consumo}
+    El problema de agua no es local ni se limita a una cierta región o país. El problema es global sin embargo, se presenta de forma más visible en cimunidades marginadas o paises menos desarrollados. Dentro de las causas más destacables se encuentra el crecimiento demográfico, la poca disponibilidad de agua dulce y su constante contaminación por actividades humanas.
+    \section{El agua en Querétaro}
+        \subsection{hidrología}
+            El estado de Querétaro de Arteaga se localza en la zona centro de la República Mexicana, con una poblacón de aproximada de 2 millones de habitantes. El estado se divide en 18 municipios, destacando a Querétaro por ser el municipio más urbanizado, siguiendo San Juan del Rio y Corregidora.
+            Querétaro se encuentra ubicado entre dos regiones hidrológicas: Lerma-Santiago y Pánuco. Los ríos Ayutla y Jalpan son afluentes del río Santa María y e encuentran al norte del estado, en la región de la Sierra Gorda Queretana, éstos concentral la moyor disponibilidad de agua superficial.
+        \subsection{Clima}
+            El $51\%$ de la superficie del estado de Querétaro tiene clima seco y semiseco. El clima cálido subhúmedo se presenta en $24.3\%$ de la superficie, en la región de la Sierra Madre Oriental; mientras que el $23\%$ de la superficie tiene clima templado subhúmedo y se localiza en la región sur, centro y noreste; $1\%$ presenta clima cálido húmedo hacia el noresta y el restante presenta clima templado húmedo al nereste del estado.
+            Los climas se hallan condiciados a factores geográficos, principalmente diferentes altitudes y el papel de berrera orográfica que juega la Sierra Madre Oriental, que no permiete le paso de vientos húmedos del golfo a la vertiente interior de dicha sierra. lo que origina climas secos y semisecos en el centro de la entidad.
+        \subsection{Tipos de consumidores}
+            Querétaro es un estado industrialmente activo, en él se encuentran empresas automotrices, aeronauticas y diferentes empresas manufactureras; aportando el $1.9\%$ del PIB (Producto Interno Bruto) del país en 2009. 
+            Además de la industria, el estado cuenta con servicios de turismo, agricultura, ganaderia, servicios inmobiliarios, los cuales también aportan capital al estado.
+            Por último, el estado ha presentado un crecimiento exponensial en su población causado por la migración de personas que buscan un empleo o una mejor calidad de vida, probocado a su vez que se cambien los usos de suelo para la construcción de viviendas, centros comerciales y otros servicios públicos y provados como hospitales, escuelas y caminos.
+        \subsection{Crisis}
+            En Querétaro existen ya diferentes problemas con respecto al agua, uno de los cuales es por la falta de calidad en el agua, haciendo que enfermedades diarreicas causadas por la mala calidad del agua represente una de las principales causas de atención médica en la entidad.
+            Además de ello, la mayor fuente de agua en el estado es del tipo subterranea, lo que ocaciona que en ella se presente diferentes contaminantes como sales arsenicales, flour, nitratos o solidos disueltos. Además, en Peñamiller existe el problema de contaminación por manganeso.
+            
+            El estado cuenta con 273 fuentes de bastecimeinto, entre pozos, manantiales, presas y otros que producen anualmente $104,04 mm^3$, de los cuales la gran mayoria se utilizan para abastecer la zona metopolitana. 
+            Los recursos subterráneos representan el $70\%$ del agua utilizada en el estado, sin embargo esta fuente se encuentra en sobreexplotación y las formas naturales de recarga están siendo eliminadas (por cambios en el uso de suelos), lo que ocaciona que las recargas sean insuficientes, ya que se realiza una extracción promedio de $103 mm^3$ y hay una recarga solo de $70 mm^3$, generando un déficit de $33\%$
+
+\chapter{Precipitación Pluvial} 
+    La atmósfera es un fluido complejo donde ocurren diferentes procesos. La suma de todos estos procesos es lo que conocemos coo tiempo atmosférico. Uno de los procesos que se desarrollan en la atmósfera es la precipitación pluvial, la cual se entiende como la caida del agua desde la atmósfera hacia la superficie terrestre.
+
+    \section{Proceso de precipitación}
+        El proceso de precipitación se puede relacionar con el ciclo del agua, sin embargo difiere de este al no considerar todas las etapas y enfocarse únicamente en la condensación y precipitación.
+        \subsection{Nubes}
+            Las nubes son cumulos inmesos de partículas \textit{suspendidas}\footnote{La velocidad en la caída de estas gotas es tan baja que parecen estar suspendidas} en la atmósfera, se forman cuando el aire se encuentra \textbf{saturado}. La saturación puede ocurrir por adición de gotas de agua, cristales de hielo, polvo o una mezcla de estos. 
+            Cuando estas partículas se encuentran suspendidas en la atmosfera adquieren el nombre de \textbf{hidrometeoros}.
+        \subsection{Precipitación}
+            Los hidrometeoros se encuentran en constante movimiento en la atmosfera, generando colociones entre ellos que provocan el incremento en su tamaño. Los hidrometeoros tienen una variación en su tamaño que va desde los $2\mu m$ hasta los $2500 \mu m$. El aumento en el tamaño de los hidrometeoros genera un cambio en el peso de estos, haciendo que caigan hacia la superficie terrestre. Cuando esto le ocurre a una gran cantidad de hidrometeoros ocurre el fenómeno conocido como precipitación.
+    \section{Métodos de medición}
+        El volumen totoal de las precipitacciones que llegan a la superficie durante un período determinado se expresa en función del nivel que alcanzariían sobre una proyección horizontal de la superficie. La unidad de precipitación es la profundiad lineal, normalmente en milímetros. Los periódos comunies de observación son cada hora, cada tres horas y a diario, aunque en algunos casos se requiere una resolución temporal mucho mayor para medir intensidades de llvia muy elevadas.
+        \subsection{Pluviómetros}
+            Uno de los intrumentos de medición más utilizado es el pluviometro. El pluviometro es un recipiente abierto de lados vericales, en forma de cilindro recto, y con un embudo, cuya principal función es medir la lluvia puntual ocurrida en un periodo de tiempo determindado.
+        \subsection{Medidores de precipitación registradores}
+            Son aparatos que usan diferentes técnicas como el de pesaje, el cual registra el peso de la precipitación acumulada en un depósito, el de cubeta basculante, cuyo funcionamiento se basa en registrar el tiempo que tarda una cubeta en cambiar su inclinación esto en función de la precipitación ocurrida y el de flotador o pluviógrafo, en el cual la lluvia pasa a un recipiente que contiene un flotador y a medida qie el nivel del agua aumenta, el movimiento del flotador se transmite a un dispositivo que registra este cambio.
+
+\chapter{Radar Meterorológico}
+    El uso de radares en la meteorología tiene una gran historia desde su implementación, sin embargo el uso para aplicaciones hidrológicas es relativamente nuevo.
+    \section{Funcionamiento}
+        Un radar meteorológico es un emisor y receptor de pulsos electromagnéticos de duración $\tau$ y longitud de onda $\lambda$. 
+        Cuando la energía emitida es interceptada por un \textit{blanco}, esta es dispersada en todas direcciones, de forma que una fracción de la energía es devuelta en dirección del radar y captada por el receptor. 
+    \section{Aplicación en la meteorología}
+        La medición de la energía electromagnética devuelta por una gota de lluvia está directamente relacionada con una cantdad física denomindad \textit{reflectivilidad} ($Z$) cuyas unidades son $mm^6/m^3$, a partir de esta unidad se puede conocer un estimado de la acumulación de la precipitación ($mm$) usando una relación conocida como $Z-R$ cuya ecuación esta dada en terminos de una ley de potencia del tipo $Z= aR^b$, con $a,b$ constantes determindas por factores como la ubicación y el tamaño de la gota. Usualmente se usan los parámtros empiricos de Marshall-Palmer tomando $a=200$ y $b=1.6$.
