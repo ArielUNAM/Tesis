@@ -49,4 +49,8 @@ x = np.array(image[8:229,8:214,1])
 print x.shape
 np.savetxt('/home/amagaldi/Desktop/raga34.out', x,  fmt="%5.2f") 
 
+<<<<<<< HEAD
 
+=======
+print "huevos"
+>>>>>>> 1efd988d4a9502c2a081a8d9120471d73b4ccbcf
