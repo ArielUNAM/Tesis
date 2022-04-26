@@ -13,6 +13,8 @@
 ./all/wradlib-data-master/geo/bonn_new.tif
 .ipynb_checkpoints
 .vscode
+*.csv
+*.json
 *.npz
 ./.git/objects/pack/pack-ae45516a192637fcac30ed15dfdfa501770313c8.pack
 ./.git/objects/pack/pack-bf9bfd1f8f916e8dfef89fa8c6c2fd6e78b0068b.pack
