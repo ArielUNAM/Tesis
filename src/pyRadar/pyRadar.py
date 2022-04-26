@@ -1473,7 +1473,7 @@ def clear_inf_nan( acums:list, nan_value:float= 0.0, inf_value:float=0.0 )->list
     
     new_acum= []
     for acum in acums:
-        if( type(acum) == list ):
+        if( type(acum) == list or type(acum) == np.ndarray ):
             aux_acum= []
             for value in acum:
                 if( ( isinf( value ) ) or ( isnan( value ) ) ):
@@ -1483,6 +1483,7 @@ def clear_inf_nan( acums:list, nan_value:float= 0.0, inf_value:float=0.0 )->list
             new_acum.append( aux_acum )
             
         else:
+            
             if( ( isinf( acum ) ) or ( isnan( acum ) ) ):
                 new_acum.append( isinf(acum)*inf_value + isnan(acum)*nan_value )
             else:
