@@ -4,4 +4,6 @@ path2fig= '/home/arielcg/Documentos/Tesis/src/data/img/'
 path2csv= '/home/arielcg/Documentos/Tesis/src/data/CSV/'
 
 dict2data= {'2015':'QRO_2015/','2016':'QRO_2016/','2017':'QRO_2017/'}
-filename= "/home/arielcg/QRO_2016/RAW_NA_000_236_20160611101608" 
+filename= "/home/arielcg/QRO_2015/RAW_NA_000_236_20150620062109"
+#RAW_NA_000_236_20150620012609"
+#"/home/arielcg/QRO_2016/RAW_NA_000_236_20160611101608" 

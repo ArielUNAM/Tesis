@@ -152,14 +152,14 @@ def plot(radar,display,fig,n,radar_subplots,projection,xpoint,ypoint):
     plt.savefig(f"prueba{i}")
     
 def plot_reflectivity():
-    """Graficas de reflectividad
+    """Graficas de reflectividad (check)
     """
     iris= pr.get_iris( filename )
     reflectivity= pr.get_reflectivity( iris )
-    pr.plot_reflectivity( reflectivity, "Reflectividad", "equivalent reflectivity (dBZ)", path2fig + "refWL" )
+    pr.plot_reflectivity( reflectivity, "Reflectividad", "Reflectividad equivalente (dBZ)", path2fig + "refWL" )
 
     radar= pr.get_radar( filename )
-    pr.plot_reflectivity( radar, "Reflectividad", "equivalent reflectivity (dBZ)", path2fig + "refPR",radarFrom=True )
+    pr.plot_reflectivity( radar, "Reflectividad", "Reflectividad equivalente  (dBZ)", path2fig + "refPR",radarFrom=True )
     
 def plot_clutter():
     """Graficas de la aplicación del filtro gabella
@@ -168,12 +168,18 @@ def plot_clutter():
     reflectivity= pr.get_reflectivity( iris )
     pr.plot_clutter( reflectivity, "Filtro Gabella para disminuir el ruido", path2fig+"gabellaWL")
  
+def plot_inter():
+    iris= pr.get_iris( filename )
+    reflectivity= pr.get_reflectivity( iris )
+    data_no_clutter= pr.clutter_processing( reflectivity )
+    pr.plot_reflectivity( data_no_clutter, 'Interpolación', "Reflectividad equivalente  (dBZ)", path2fig + "intWL" )
 def plot_pia():
 
     iris= pr.get_iris( filename )
     reflectivity= pr.get_reflectivity( iris )
 
-    beam= ([0,-860],[0,-280]) #Get this values manually
+    #beam= ([0,-860],[0,-280]) #Get this values manually
+    beam= ([0,-680],[0,680]) #Get this values manually
     mybeams= slice(250, 255) #This is an angle, get manually
 
     #First plot
@@ -182,15 +188,15 @@ def plot_pia():
     #Pia plots
     pr.plot_attenuation( reflectivity, mybeams, path2fig+"kreamerWL", ylim=1)
 
-    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonWL",pia_title="PIA according to Hitchfeld and Bordan",beams_title="PIA according to Hitchfeld and Bordan", type="hitchfeld", ylim=1)
+    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonhWL",pia_title="PIA according to Hitchfeld and Bordan",beams_title="PIA according to Hitchfeld and Bordan", type="hitchfeld", ylim=1)
 
     pr.plot_attenuation( reflectivity, mybeams, path2fig+"mkreamerWL",pia_title="PIA according to Kraemer modificado",beams_title="PIA according to Kraemer modificado", type="mkraemer",ylim=1 )
 
     pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonWL",pia_title="PIA according to Harrison",beams_title="PIA according to Harrison", type="harrison", ylim=7)
 
 def plot_acum():
-    shape, rainfall= pr.est_rain_rate_z( filename  )
-    pr.plot_reflectivity( rainfall, "LLuvia", "[mm h$^-1$]", path2fig + "rainfallWL" )
+    rainfall= pr.est_rain_rate_z( filename  )
+    pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
 
 def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     """Plot the entire radar domain and zoom into the surrounding of the rain gauge locations
@@ -433,6 +439,9 @@ def print_acum( data, segmentos ):
 
 
 if __name__ == '__main__':
+    plot_acum()
+
+def acum_from_files(): 
     import json
     years= ['2015', '2016', '2017']
     #n_points= 15

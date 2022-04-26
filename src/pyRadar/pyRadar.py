@@ -128,8 +128,8 @@ CMAP= 'GnBu'
 
 # CONFIG
 # =================
-params = {'axes.labelsize': 25,
-          'axes.titlesize': 35}
+params = {'axes.labelsize': 15,
+          'axes.titlesize': 20}
 plt.rcParams.update(params)
 
 # Acquisition and ordering
@@ -673,10 +673,10 @@ def get_radar_acum( radar:pyart.core.radar.Radar, fields:list=None ):
 
     return acum
 
-def get_acum( files:list )->np.array:
+def get_acum( files:list,a:float = 200,b:float = 1.6 )->np.array:
     acum= np.zeros( ( get_shape( get_iris( files[0] ) ) ) )
     for file in files:
-        acum+= est_rain_rate_z( file )
+        acum+= est_rain_rate_z( file, a=a, b=b )
     return acum
 
 
@@ -758,7 +758,7 @@ def get_coords( radar:pyart.core.radar.Radar )->tuple:
 
 ## Plotting
 ## ========================================
-def __plot_reflectivity(data, title, filename, fig ):
+def __plot_reflectivity(data, title, filename, fig, vmax=45):
     
     projection = ccrs.LambertConformal(central_latitude=data.latitude['data'][0], central_longitude=data.longitude['data'][0])
 
@@ -772,7 +772,7 @@ def __plot_reflectivity(data, title, filename, fig ):
                 lat_0=lat_0,
                 lon_0=lon_0,
                 resolution='10m',
-                vmin=0,
+                vmin=0,vmax=vmax,
                 projection=projection,
                 fig=fig, ax=ax,
                 #title=title,
@@ -801,7 +801,7 @@ def plot_reflectivity(data, title:str, bar_label:str='', filename:str='plot_func
     >>> plot_reflectivity( radar , 'Titulo', 'Filename', radarFrom= True)
 
     """
-    fig= plt.figure(figsize=(10,6))
+    fig= plt.figure(figsize=(10,7))
     if( radarFrom ):
         return __plot_reflectivity(data, title, filename, fig )
     
@@ -854,7 +854,7 @@ def plot_clutter( data, suptitle:str, filename:str,data_title:str="Datos con des
     ax= fig.add_subplot(121) 
     ma= get_mask_from_data( data )
     ax, pm= wl.vis.plot_ppi( ma, ax=ax, cmap=CMAP)
-    ax.set_title( data_title, y=1.05, fontsize=50)
+    ax.set_title( data_title, y=1.05)
 
     plt.grid(True)
 
@@ -866,14 +866,14 @@ def plot_clutter( data, suptitle:str, filename:str,data_title:str="Datos con des
                             wsize= 5, thrsnorain=0.,
                             tr1=6., tr2=1.3,
                             n_p=8.)
-    ax, pm= wl.vis.plot_ppi( clmap, ax=ax, cmap='GnBu_r' )
-    ax.set_title(clutter_title,y=1.05, fontsize=50)
+    ax, pm= wl.vis.plot_ppi( clmap, ax=ax, cmap=plt.cm.gray)#cmap='GnBu_r' )
+    ax.set_title(clutter_title,y=1.05)
 
     plt.grid(True)
 
     #Set labels and titles
-    plt.suptitle( suptitle, y=0.92, fontsize=50)
-    fig.text(0.5, 0.15, xlabel, ha='center')
+    plt.suptitle( suptitle, y=0.98, fontsize=30)
+    fig.text(0.5, 0.1, xlabel, ha='center')
     fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical')
 
     plt.savefig( filename )
