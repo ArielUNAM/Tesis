@@ -28,7 +28,6 @@
 ./all/wradlib-data-master/geo/rivers_asia_37331.shp
 ./all/wradlib-data-master/geo/rivers_asia_37331.dbf
 ./all/wradlib-data-master/geo/bonn_new.tif
-<<<<<<< HEAD
 ./src/data/*
 ./all/wradlib-data-master/radolan/grid/geotiff.tif
 ./all/wradlib-data-master/netcdf/cfrad.20080604_002217_000_SPOL_v36_SUR.nc
@@ -40,5 +39,3 @@
 ./all/wradlib-data-master/geo/rivers_asia_37331.shp
 ./all/wradlib-data-master/geo/rivers_asia_37331.dbf
 ./all/wradlib-data-master/geo/bonn_new.tif
-=======
->>>>>>> 1efd988d4a9502c2a081a8d9120471d73b4ccbcf
