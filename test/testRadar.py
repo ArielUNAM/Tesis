@@ -431,9 +431,117 @@ def print_acum( data, segmentos ):
     print( acums )
 
 
+
 if __name__ == '__main__':
+    years= ['2015', '2016', '2017']
+    #n_points= 15
+    nnear= 1
+    for year in years:
+        print(year)
+        filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
+
+        radar= pr.get_radar( filename )
+
+        fields= pr.get_all_fields( radar )
+
+        segmentos= [re.findall( 'segmento_\d{1}', x ) for x in dir(config1)]
+        segmentos= [item for sublist in segmentos for item in sublist]
+
+        d_acum= {}
+        for field in fields:
+            data= radar.fields[ field ]['data'].filled()
+            acum= 0
+            for segmento in segmentos:
+                P1,P2,P3,P4, n_points= getattr( config1, segmento )()
+                y= lambda m,b,x: m*x + b
+                x= lambda m,b,y: (y-b)/m
+                
+                m,b= pr.get_m_b( P1, P2 )
+                Y1= np.linspace( P1[1], P2[1],n_points)
+                F1= [ ( x(m,b,j), j ) for j in Y1]
+
+                m,b= pr.get_m_b( P3, P4 )
+                Y2= np.linspace( P3[1], P4[1],n_points)
+                F2= [ ( x(m,b,j), j ) for j in Y2]
+                
+                M= []
+                #Vamos a generar lineas para cada punto
+                for l1, l2 in zip( F1, F2 ):
+                    X= np.linspace( l1[0], l2[0], n_points )
+                    m,b= pr.get_m_b( l1, l2 )
+                    M.append( [ 
+                        [ round(i, ndigits=4) for i in X ],
+                        [ round(y(m,b,i),ndigits=4) for i in X ]
+                    ] )
+
+                for coords in M:
+                    radar_at_gages= pr.get_acum_by_gages( coords[0],coords[1], data, nnear)
+                    gages= [ gage for gage in radar_at_gages ]
+                    acum+= sum(gages)
+
+            d_acum[field]= acum
+        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( year + 'config1'  + '.csv')   
+                
+
+def acum_csv():
 #    plot_anual()
+    years= ['2015', '2016', '2017']
+    n_points= 15
+    nnear= 1
+    for year in years:
+        filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
+
+        radar= pr.get_radar( filename )
+
+        fields= pr.get_all_fields( radar )
+        #Define space 
+        lat_max= 19.8; lat_min= 21.7
+        lon_max= -100.59; lon_min= -99.0
     
+        # #Lines
+        lat_lines=np.linspace(lat_min, lat_max, n_points)
+        lon_lines=np.linspace(lon_min, lon_max, n_points)
+
+        #data= pr.get_acum_from_fields( radar, fields )
+        acum= {}
+        for field in fields:
+            data= radar.fields[ field ]['data'].filled()
+        
+
+            mp= pr.get_middle_points( lon_lines, lat_lines )
+
+            lon= [ point[0] for point in mp ]
+            lat= [ point[1] for point in mp ]
+
+        
+
+            radar_at_gages= pr.get_acum_by_gages( lon, lat, data, nnear)
+            gages= [ gage for gage in radar_at_gages ]
+
+            acum[field]= sum(gages)
+
+        pd.DataFrame.from_dict( data=acum, orient='index' ).to_csv( year + '.csv')#, index=False )
+
+        #gages= [ round(sum(gage)) if round(sum(gage)) < max_val else max_val for gage in gages ]
+        #gages= [ round(sum(gage)) for gage in gages ]
+        # n= int(np.sqrt( len(gages) ))
+        # m_gages= np.rot90(np.reshape( gages, (n,n)), 3 )
+        
+        # plt.imshow( m_gages )
+        # plt.savefig("pureba1")
+
+        # x,y= np.where( m_gages < 80 )
+        # for i, j in zip(x,y):
+        #     m_gages[i][j]= sum(pr.get_vn_neig( m_gages, (i,j) ))/4
+        # plot_clear()
+        # plt.imshow( m_gages )
+        # plt.savefig("pureba2")
+        
+
+        
+
+
+def plot_Seg():
     year= '2017'
     filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
     radar= pr.get_radar( filename )

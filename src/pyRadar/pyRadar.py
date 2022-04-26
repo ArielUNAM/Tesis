@@ -74,6 +74,7 @@
 # ================
 import itertools
 from tkinter import Y
+from turtle import down, left, right, up
 from wradlib.util import get_wradlib_data_file
 import wradlib as wl
 import pyart
@@ -1375,10 +1376,11 @@ def get_acum_by_fields( radar, new_field ,lng_name='Acumulado anual 2015', srt_n
     return radar
 
 def get_acum_by_gages(lon, lat, data, nnear ):
-    radar_at_gages,_,_,_,_,_,_= get_acum_from_coord(lon,lat, data, nnear=nnear)
+    radar_at_gages,_,_,_,_,_,_= get_acum_from_coord(lon, lat, data, nnear=nnear)
+
     return clear_inf_nan( radar_at_gages )
 
-def get_acum_from_coord( lon:int, lat:int, data:np.array, epsg=4326, nnear= 1):
+def get_acum_from_coord( lon:int, lat:int, data:np.array, epsg:int=4326, nnear= 1):
     fileData='/home/arielcg/QRO_2015/RAW_NA_000_236_20150711000109'
     r, az, sitecoords= get_metadata( 
                                     get_iris(fileData) )
@@ -1394,7 +1396,7 @@ def get_acum_from_coord( lon:int, lat:int, data:np.array, epsg=4326, nnear= 1):
 
     return radar_at_gages,x,y,binx,biny,binx_nn,biny_nn
 
-def get_proj_transform( lat, lon, epsg ):
+def get_proj_transform( lat:list, lon:list, epsg:int ):
     if( len( lat ) != len( lon ) ):
         raise ValueError(" Las dimensiones de las coordenadas no coinciden")
 
@@ -1468,17 +1470,25 @@ def clear_inf_nan( acums:list, nan_value:float= 0.0, inf_value:float=0.0 )->list
     :return: A list whitout nan an inf values
     :rtype: list
     """
+    
     new_acum= []
     for acum in acums:
-        aux_acum= []
-        for value in acum:
-            if( ( isinf( value ) ) or ( isnan( value ) ) ):
-                aux_acum.append( isinf(value)*inf_value + isnan(value)*nan_value )
+        if( type(acum) == list ):
+            aux_acum= []
+            for value in acum:
+                if( ( isinf( value ) ) or ( isnan( value ) ) ):
+                    aux_acum.append( isinf(value)*inf_value + isnan(value)*nan_value )
+                else:
+                    aux_acum.append( value )
+            new_acum.append( aux_acum )
+            
+        else:
+            if( ( isinf( acum ) ) or ( isnan( acum ) ) ):
+                new_acum.append( isinf(acum)*inf_value + isnan(acum)*nan_value )
             else:
-                aux_acum.append( value )
-        new_acum.append( aux_acum )
-                
+                new_acum.append( acum )
     return new_acum
+                
 
 def get_m_b( X1:tuple, X2:tuple)->tuple:
     """y= mx + b
@@ -1556,3 +1566,37 @@ def get_acum_from_rect( P1:tuple, P2:tuple, P3:tuple, P4:tuple, n_points:int, da
         i+= 1
 
     return d_acum, g_coords, g_labels
+
+def get_all_fields( radar ):
+    return radar.metadata['field_names'].split(', ')
+
+def get_acum_from_fields( radar, fields ):
+    acum= np.zeros((360, 921))
+    for field in fields:
+        try:
+            acum+= radar.fields[ field ]['data'].filled()
+        except:
+            acum+= radar.fields[ field ]['data']
+    return acum 
+
+def get_vn_neig( matrix, coords ):
+    
+    if coords[1] == 0:
+        up= 0
+    else:
+        up= matrix[ coords[0]][ coords[1] - 1 ]
+    if  coords[1] == matrix.shape[1] - 1 :
+        down= 0
+    else:
+        down= matrix[ coords[0]][ coords[1] + 1 ]
+    if coords[0] == 0:
+        right= 0
+    else:
+        right= matrix[ coords[0] - 1][ coords[1] ]
+    if  coords[0] == matrix.shape[0] - 1:
+        left= 0
+    else:
+        left= matrix[ coords[0] + 1][ coords[1] ]
+        
+
+    return( [ up, left, down, right  ] )
