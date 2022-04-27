@@ -271,12 +271,12 @@ def est_rain_rate_z(path_to_data:str,pia_type:str='default',tr1:float=12,n_p:flo
     """
     iris_data= get_iris( path_to_data )
 
-    if( get_elevation(iris_data,True) < angle ):
+    if( get_elevation(iris_data, True) < angle ):
         
         dBZ, pia= data_processing_chain(iris_data,pia_type,tr1,n_p,tr2,)
-        velocity= get_velocity(iris_data,bool_vel)
+        velocity= get_velocity(iris_data, bool_vel)
 
-        return reflectivity_to_rainfall(dBZ+pia,velocity,a,b,intervalos,mult)
+        return reflectivity_to_rainfall( dBZ+pia,velocity, a ,b ,intervalos, mult )
 
     return 
 
@@ -302,9 +302,9 @@ def reflectivity_to_rainfall(dBZ:np.ndarray,vel:np.ndarray,a:float = 200,b:float
     :return: [description]
     :rtype: ndarray
     """
-    Z = wl.trafo.idecibel(dBZ)
-    R = wl.zr.z_to_r(Z,a=a,b=b)
-    depth = wl.trafo.r_to_depth(R,intervalos)
+    Z = wl.trafo.idecibel( dBZ )
+    R = wl.zr.z_to_r( Z, a=a, b=b )
+    depth = wl.trafo.r_to_depth( R, intervalos )
 
     if mult:
         vel=data_cleaner(vel)
@@ -329,7 +329,7 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
     :rtype: tuple
     """
     reflectivity= get_reflectivity(iris_data)
-    reflectivity= data_cleaner(reflectivity)
+    #reflectivity= data_cleaner(reflectivity)
     
     dBZ_ord = clutter_processing(reflectivity,
                                          tr1=tr1,n_p=n_p, tr2=tr2)
@@ -348,7 +348,7 @@ def data_processing_chain(iris_data:OrderedDict,pia_type:str='default',tr1:float
             constraints= [wl.atten.constraint_dbz,wl.atten.constraint_pia],
             constraint_args=[[59.0],[20.0]])
 
-    pia= data_cleaner(pia)
+    #pia= data_cleaner(pia)
     return (dBZ_ord,pia)
 
 def get_clutter(reflectivity:np.ndarray,wsize:int=5,thrsnorain:int=0,tr1:float=12,n_p:float=12,tr2:float=1.1,clutter:bool=True)->np.ndarray:
@@ -676,7 +676,10 @@ def get_radar_acum( radar:pyart.core.radar.Radar, fields:list=None ):
 def get_acum( files:list,a:float = 200,b:float = 1.6 )->np.array:
     acum= np.zeros( ( get_shape( get_iris( files[0] ) ) ) )
     for file in files:
-        acum+= est_rain_rate_z( file, a=a, b=b )
+        try:
+            acum+= data_cleaner(  est_rain_rate_z( file, a=a, b=b ) )
+        except:
+            print(est_rain_rate_z( file, a=a, b=b ))
     return acum
 
 

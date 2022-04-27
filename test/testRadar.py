@@ -20,6 +20,76 @@ trimestres= {'1':['01','02','03'], '2':['04','05','06'], '3':['07','08','09'], '
 
 tirm_to_month= {'01':'ENERO', '02':'FEBRERO','03':'MARZO','04':'ABRIL','05':'MAYO','06':'JUNIO','07':'JULIO','08':'AGOSTO','09':'SEPTIEMBRE','10':'OCTUBRE', '11':'NOVIEMBRE', '12':'DICIEMBRE'}
 
+# Verificados
+# ==============
+def plot_reflectivity():
+    """Graficas de reflectividad (check)
+    """
+    iris= pr.get_iris( filename )
+    reflectivity= pr.get_reflectivity( iris )
+    pr.plot_reflectivity( reflectivity, "Reflectividad", "Reflectividad equivalente (dBZ)", path2fig + "refWL" )
+
+    radar= pr.get_radar( filename )
+    pr.plot_reflectivity( radar, "Reflectividad", "Reflectividad equivalente  (dBZ)", path2fig + "refPR",radarFrom=True )
+    
+def plot_clutter():
+    """Graficas de la aplicación del filtro gabella
+    """
+    iris= pr.get_iris( filename )
+    reflectivity= pr.get_reflectivity( iris )
+    pr.plot_clutter( reflectivity, "Filtro Gabella para disminuir el ruido", path2fig+"gabellaWL")
+ 
+def plot_inter():
+    iris= pr.get_iris( filename )
+    reflectivity= pr.get_reflectivity( iris )
+    data_no_clutter= pr.clutter_processing( reflectivity )
+    pr.plot_reflectivity( data_no_clutter, 'Interpolación', "Reflectividad equivalente  (dBZ)", path2fig + "intWL" )
+
+def plot_pia():
+
+    iris= pr.get_iris( filename )
+    reflectivity= pr.get_reflectivity( iris )
+
+    #beam= ([0,-860],[0,-280]) #Get this values manually
+    beam= ([0,-680],[0,680]) #Get this values manually
+    mybeams= slice(250, 255) #This is an angle, get manually
+
+    #First plot
+    pr.plot_beam( reflectivity, beam, "Sección del radar analizada", "equivalent reflectivity (dBZ)", path2fig+"beamWL" )
+
+    #Pia plots
+    pr.plot_attenuation( reflectivity, mybeams, path2fig+"kreamerWL", ylim=1)
+
+    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonhWL",pia_title="PIA according to Hitchfeld and Bordan",beams_title="PIA according to Hitchfeld and Bordan", type="hitchfeld", ylim=1)
+
+    pr.plot_attenuation( reflectivity, mybeams, path2fig+"mkreamerWL",pia_title="PIA according to Kraemer modificado",beams_title="PIA according to Kraemer modificado", type="mkraemer",ylim=1 )
+
+    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonWL",pia_title="PIA according to Harrison",beams_title="PIA according to Harrison", type="harrison", ylim=7)
+
+def plot_acum():
+    rainfall= pr.est_rain_rate_z( filename  )
+    pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
+
+
+def daily_acumulation( ):
+    #Get a list with dir paths where data are.
+    paths= pr.get_path_files( path2root, 'QRO_\d{4}' )
+
+    #For dir in dirPaths
+    for path in paths:
+        #Get all files from dirPath. The result is a dic where the key is the month and value is another dic where the key is the dat
+        files= pr.get_files_from_path( path )
+
+        
+        #The neted loop allow us to get each file
+        for month in files.keys():
+            for day in files[ month ].keys():
+                #Get the acum from a day and save in a compres file
+                acum= pr.get_acum( files[month][day] )
+                np.savez_compressed( path2save + path[-4:] + '/'+month + '/'+  path[-4:]+month +day, data= acum)
+# No Verificados
+# ==============
+
 def annual_acumulation():
     years= pr.get_path_files( path2save, "\d{4}" )
     for year in years:
@@ -31,15 +101,6 @@ def annual_acumulation():
                 data= np.load( file )
                 acum+= data['data']
         np.savez_compressed( path2save + year  , data= acum)
-
-def daily_acumulation( ):
-    paths= pr.get_path_files( path2root, 'QRO_\d{4}' )
-    for path in paths:
-        files= pr.get_files_from_path( path )
-        for month in files.keys():
-            for day in month.keys():
-                acum= pr.get_acum( files[month][day] )
-                np.savez_compressed( path2save + path[-4:] + month + day, data= acum)
 
 def monthy_acumulation():
     years= pr.get_path_files( path2save, "\d{4}" )
@@ -151,52 +212,6 @@ def plot(radar,display,fig,n,radar_subplots,projection,xpoint,ypoint):
     
     plt.savefig(f"prueba{i}")
     
-def plot_reflectivity():
-    """Graficas de reflectividad (check)
-    """
-    iris= pr.get_iris( filename )
-    reflectivity= pr.get_reflectivity( iris )
-    pr.plot_reflectivity( reflectivity, "Reflectividad", "Reflectividad equivalente (dBZ)", path2fig + "refWL" )
-
-    radar= pr.get_radar( filename )
-    pr.plot_reflectivity( radar, "Reflectividad", "Reflectividad equivalente  (dBZ)", path2fig + "refPR",radarFrom=True )
-    
-def plot_clutter():
-    """Graficas de la aplicación del filtro gabella
-    """
-    iris= pr.get_iris( filename )
-    reflectivity= pr.get_reflectivity( iris )
-    pr.plot_clutter( reflectivity, "Filtro Gabella para disminuir el ruido", path2fig+"gabellaWL")
- 
-def plot_inter():
-    iris= pr.get_iris( filename )
-    reflectivity= pr.get_reflectivity( iris )
-    data_no_clutter= pr.clutter_processing( reflectivity )
-    pr.plot_reflectivity( data_no_clutter, 'Interpolación', "Reflectividad equivalente  (dBZ)", path2fig + "intWL" )
-def plot_pia():
-
-    iris= pr.get_iris( filename )
-    reflectivity= pr.get_reflectivity( iris )
-
-    #beam= ([0,-860],[0,-280]) #Get this values manually
-    beam= ([0,-680],[0,680]) #Get this values manually
-    mybeams= slice(250, 255) #This is an angle, get manually
-
-    #First plot
-    pr.plot_beam( reflectivity, beam, "Sección del radar analizada", "equivalent reflectivity (dBZ)", path2fig+"beamWL" )
-
-    #Pia plots
-    pr.plot_attenuation( reflectivity, mybeams, path2fig+"kreamerWL", ylim=1)
-
-    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonhWL",pia_title="PIA according to Hitchfeld and Bordan",beams_title="PIA according to Hitchfeld and Bordan", type="hitchfeld", ylim=1)
-
-    pr.plot_attenuation( reflectivity, mybeams, path2fig+"mkreamerWL",pia_title="PIA according to Kraemer modificado",beams_title="PIA according to Kraemer modificado", type="mkraemer",ylim=1 )
-
-    pr.plot_attenuation( reflectivity, mybeams, path2fig+"harrisonWL",pia_title="PIA according to Harrison",beams_title="PIA according to Harrison", type="harrison", ylim=7)
-
-def plot_acum():
-    rainfall= pr.est_rain_rate_z( filename  )
-    pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
 
 def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     """Plot the entire radar domain and zoom into the surrounding of the rain gauge locations
@@ -438,8 +453,10 @@ def print_acum( data, segmentos ):
 
 
 
+
 if __name__ == '__main__':
-    plot_acum()
+    daily_acumulation()
+
 
 def acum_from_files(): 
     import json
