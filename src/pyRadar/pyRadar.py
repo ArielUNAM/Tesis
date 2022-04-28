@@ -72,6 +72,7 @@
 
 # Radar libraries
 # ================
+from genericpath import isdir
 import itertools
 from tkinter import Y
 from turtle import down, left, right, up
@@ -134,7 +135,7 @@ plt.rcParams.update(params)
 
 # Acquisition and ordering
 # ========================================
-def get_path_files(root_of_dirs:str, rex:str)->list:
+def get_path_files(root_of_dirs:str, rex:str, is_dir:bool=True)->list:
     """Returns a list of paths located at the root and matching the regular expression. I suppose that your files are organizated in folders.
 
     :param root: Path of the directory files
@@ -144,7 +145,10 @@ def get_path_files(root_of_dirs:str, rex:str)->list:
     :return: List of paths located at the root and matching the regular expression
     :rtype: list
     """
-    return [root_of_dirs + string for string in os.listdir(root_of_dirs) if re.match(rex,string)]
+    if is_dir:
+        return [root_of_dirs + string for string in os.listdir(root_of_dirs) if re.match(rex,string) and isdir(root_of_dirs + string)]
+    else:
+        return [root_of_dirs + string for string in os.listdir(root_of_dirs) if re.match(rex,string)]
 
 def get_files_from_path(path_to_data:str)->dict:
     """Returns a dictionary of dictionaries that stores the location of the data classified by month and day. This info is the key

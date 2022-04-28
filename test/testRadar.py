@@ -1,3 +1,5 @@
+from calendar import month
+from cmath import exp
 import sys
 
 from matplotlib.colors import Normalize
@@ -70,70 +72,95 @@ def plot_acum():
     rainfall= pr.est_rain_rate_z( filename  )
     pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
 
-
 def daily_acumulation( ):
     #Get a list with dir paths where data are.
-    paths= pr.get_path_files( path2root, 'QRO_\d{4}' )
+    #paths= pr.get_path_files( path2root, 'QRO_\d{4}' )
+    paths= pr.get_path_files( path2root, 'QRO_2016' )
 
     #For dir in dirPaths
     for path in paths:
+        print(path[-4:])
         #Get all files from dirPath. The result is a dic where the key is the month and value is another dic where the key is the dat
         files= pr.get_files_from_path( path )
-
-        
         #The neted loop allow us to get each file
         for month in files.keys():
+            print("Month: ", month)
             for day in files[ month ].keys():
                 #Get the acum from a day and save in a compres file
                 acum= pr.get_acum( files[month][day] )
-                np.savez_compressed( path2save + path[-4:] + '/'+month + '/'+  path[-4:]+month +day, data= acum)
-# No Verificados
-# ==============
+                np.savez_compressed( path2save + path[-4:] + '/'+ month + '/'+  path[-4:]+month +day, data= acum)
+
+def monthy_acumulation():
+    max_value= 100000
+    
+    years= pr.get_path_files( path2save, "\d{4}" )
+    for year in years:
+        print(year[-4:])
+        months= pr.get_path_files( year + '/', "\d{2}")
+        
+        for month in months:
+            acum= np.zeros( (360,921) )
+            days= pr.get_path_files( month + '/', "\d{8}.npz$", is_dir=False)
+
+            for file in days:
+                data= np.load( file )
+
+                new_data= np.where( data['data'] < max_value, data['data'], 0)
+
+                acum+= new_data
+            np.savez_compressed( path2save + year[-4:] + '/'+  year[-4:]+ month[-2:] , data= acum)
 
 def annual_acumulation():
     years= pr.get_path_files( path2save, "\d{4}" )
+    #years= pr.get_path_files( path2save, "2017" )
     for year in years:
+        print(year[-4:])
+        radar= pr.clear_radar( pr.get_radar( filename ) )
         acum= np.zeros( (360,921) )
-        months= pr.get_path_files( year, "\d{2}")
-        for month in months:
-            files= pr.get_path_files( month, "radar_\d{4}_\d{2}.npz$")
-            for file in files:
-                data= np.load( file )
-                acum+= data['data']
-        np.savez_compressed( path2save + year  , data= acum)
+        months= pr.get_path_files( year + '/', "\d{6}.npz$", is_dir=False)
+        for file in months:
+            data= np.load( file )
+            acum+= data['data']
+            radar.add_field( f'ACUM_{file[-6:-4]}', 
+                pr.numpy_to_radar_dict( 
+                    data['data'],
+                    'Precipitación mensual estimada', 
+                    'Precipitación estimada [$mm/h$]', 'mm/h' )
+                    )
+        radar.add_field( 'ACUM', 
+                pr.numpy_to_radar_dict( 
+                    acum,
+                    'Precipitación anual estimada', 
+                    'Precipitación estimada [$mm/h$]', 'mm/h' )
+                    )
+        pr.pyart.io.write_cfradial( path2save + 'radar_' + year[-4:] + '.nc', radar )
+    
+def generate_radar_acum_trim():
+    #Define si lo quieres en el mismo radar o en otros
+    files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
+    
+    for file in files:
+        print(file[-7:-3])
+        radar= pr.get_radar( file )
+        fields= pr.get_all_fields( radar )
 
-def monthy_acumulation():
-    years= pr.get_path_files( path2save, "\d{4}" )
-    for year in years:
-        months= pr.get_path_files( year, "\d{2}")
-        for month in months:
-            acum= np.zeros( (360,921) )
-            days= pr.get_path_files( month, "\d{2}")
-            for day in days:
-                files= pr.get_path_files( day, "radar_\d{4}_\d{2}_\d{2}.npz$")
-                for file in files:
-                    data= np.load( file )
-                    acum+= data['data']
-        np.savez_compressed( path2save + year + month , data= acum)
+        for trim, values in trimestres.items():
+            trim_fields= [field for field in fields if field[-2:] in values ]
+            acum= np.zeros((360, 921))
 
-def to_radar():
-    radar= pr.clear_radar( pr.get_radar( filename ) )
-
-    years= pr.get_path_files( path2save, "\d{4}" )
-    for year in years:
-        months= pr.get_path_files( year, "\d{2}")
-        for month in months:
-            files= pr.get_path_files( month, "radar_\d{4}_\d{2}.npz$")
-            for file in files:
-                data= np.load( file )
-                radar_str= pr.numpy_to_radar_dict( data, f"Acumulado mensual. {year}-{month}","Acumulación mensual", units='mm/h' )
-                radar.add_field( f'ACUM_{month}', radar_str )
-        files= pr.get_path_files( month, "radar_\d{4}.npz$")
-        data= np.load( file[0] )
-        radar_str= pr.numpy_to_radar_dict( data, f"Acumulado anual. {year}","Acumulación anual", units='mm/h' )
-        radar.add_field( f'ACUM', radar_str )
-
-        pr.pyart.io.write_cfradial( path2save + 'radar' + year + '.nc', radar )
+            for field in trim_fields:
+                try:
+                    acum+= radar.fields[ field ]['data'].filled()
+                except:
+                    acum+= radar.fields[ field ]['data']
+            radar.add_field( f"TRIM_{trim}",
+            pr.numpy_to_radar_dict( acum,
+                "Precipitación acumulada para el trimestre {trim}", 
+                "Precipitación equivalente",
+                'mm/h') )
+        pr.pyart.io.write_cfradial( path2save + 'radar_' + file[-7:-3] + '.nc', radar )  
+# No Verificados
+# ==============
 
 
 def plot_acums():
@@ -256,28 +283,6 @@ def pruebas_multiplot():
     n= 3
     plot(radar,display,fig,n,radar_subplots,projection)
 
-def generate_radar_acum_trim(trim=3):
-    paths= pr.get_path_files( path2save, "201[0-9]" ) 
-    
-    for path in paths:
-        files= pr.get_path_files( path+'/', 'qro_radar_acum')
-
-        radar= pr.get_radar( files[0] )
-        radar_subplots= list( radar.fields.keys() )
-
-        base_radar= pr.clear_radar( pr.get_radar( filename ) )
-
-        n= len(radar_subplots)
-        m_acum= np.zeros((360,921), dtype=np.float64)
-        for i in range( n ):
-            m_acum+= radar.fields[ radar_subplots[i] ][ 'data' ].filled()
-            if( (i+1) % trim == 0 ):
-                radar_dic= pr.numpy_to_radar_dict( m_acum, f"Acumulado trimestral para {path[-4:]}",f'ACUM_TRI_{ (i+1)/3 }',"Precipitación acumulada [$mm h^-1$]")
-                base_radar.add_field( f'ACUM_TRI_{ (i+1)/3 }', radar_dic )
-
-                m_acum= np.zeros((360,921), dtype=np.float64)
-
-        plot_radar_gen( base_radar, path2fig + "monthAcum"+path[-4:]+"PR", vmax=[100, 10, 100, 100])
 
 def generate_radar_acum_year():
     
@@ -452,10 +457,58 @@ def print_acum( data, segmentos ):
     print( acums )
 
 
+def acum_csv():
+#    plot_anual()
+    files= pr.get_path_files( path2save, 'radar_\d{4}\.nc$', is_dir=False )
+    n_points= 15
+    nnear= 1
+
+    for file in files:
+        radar= pr.get_radar( file )
+
+        fields= pr.get_all_fields( radar )
+        #Define space 
+        lat_max= 19.8; lat_min= 21.7
+        lon_max= -100.59; lon_min= -99.0
+    
+        # #Lines
+        lat_lines=np.linspace(lat_min, lat_max, n_points)
+        lon_lines=np.linspace(lon_min, lon_max, n_points)
+
+        #data= pr.get_acum_from_fields( radar, fields )
+        acum= {}
+        for field in fields:
+            data= radar.fields[ field ]['data'].filled()
+        
+
+            mp= pr.get_middle_points( lon_lines, lat_lines )
+
+            lon= [ point[0] for point in mp ]
+            lat= [ point[1] for point in mp ]
+
+            radar_at_gages= pr.get_acum_by_gages( lon, lat, data, nnear)
+            gages= [ gage for gage in radar_at_gages ]
+
+            acum[field]= sum(gages)
+
+        pd.DataFrame.from_dict( data=acum, orient='index' ).to_csv( file[-7:-3] + '.csv')#, index=False )
+
+
+
 
 
 if __name__ == '__main__':
-    daily_acumulation()
+    generate_radar_acum_trim()
+    
+    # #acum_csv()
+    # radar= pr.get_radar( '/home/arielcg/Documentos/Tesis/src/data/radar/radar_2015.nc' )
+    
+    # fields= radar.fields.keys()
+    # configs= plot_config( radar )
+    # for field in fields:
+    #     plot_clear()
+    #     pr.plot_field( radar, field, configs[0],configs[1],configs[2],  "Precipitación equivalente acumulada", path2fig + field)
+    
 
 
 def acum_from_files(): 
