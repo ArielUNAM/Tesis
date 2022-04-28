@@ -1,8 +1,5 @@
-from calendar import month
-from cmath import exp
 import sys
 
-from matplotlib.colors import Normalize
 sys.path.append('../')
 
 from src.pyRadar.dataPaths import *
@@ -17,6 +14,9 @@ import pyart
 import cartopy.crs as ccrs 
 import cartopy.feature as cfeature
 import re
+import cv2
+from os import remove
+
 
 trimestres= {'1':['01','02','03'], '2':['04','05','06'], '3':['07','08','09'], '4':['10','11','12'], }
 
@@ -71,6 +71,43 @@ def plot_pia():
 def plot_acum():
     rainfall= pr.est_rain_rate_z( filename  )
     pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
+
+def plot_trims():
+    #Define si lo quieres en el mismo radar o en otros
+    files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
+
+    trimestres= ['Trimestre 1', 'Trimestre 2', 'Trimestre 3', 'Trimestre 4']
+
+    for file in files:
+        radar= pr.get_radar( file )
+        conf= plot_config( radar )
+        d_acum= {}
+        for trim in trimestres:
+            plot_clear()
+            pr.plot_field( radar, trim, conf[0], conf[1], conf[2], f"Acumulación del trimestre {trim}", path2fig + file[-7:-3] +'_'+ 'trim_' + trim )
+            
+            plot_clear()
+            pr.plot_field_section( radar, trim, conf[0], conf[1], conf[2], f"Acumulación del trimestre {trim}", path2fig + file[-7:-3] +'_'+ 'trim_sec_' + trim )
+
+            plot_clear()
+            s= plot_grid( radar, trim, conf[0], conf[1], conf[2], f"Acumulación del trimestre {trim}", path2fig + file[-7:-3] +'_'+ 'trim_sec_vals_' + trim )
+
+            d_acum[ trim ]= s
+
+            img_over_post(path2fig + file[-7:-3] +'_'+ 'trim_sec_vals_' + trim +'.png',path2fig + file[-7:-3] +'_'+ 'trim_sec_vals_' + trim + '_map.png', path2fig + file[-7:-3] +'_'+ 'trim_'+{trim}+'_map')
+
+            remove(path2fig + file[-7:-3] +'_'+ 'trim_sec_vals_' + trim +'.png')
+            
+            remove(path2fig + file[-7:-3] +'_'+ 'trim_sec_vals_' + trim + '_map'+'.png')
+        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3] + '_trim' + '.csv')
+
+def img_over_post(f1,f2,filename):
+    img1= cv2.imread(f1)
+    img2= cv2.imread(f2)
+
+    dst= cv2.addWeighted(img1, 0.4, img2, 0.3, 0)
+    
+    cv2.imwrite( filename + '.png', dst )
 
 def daily_acumulation( ):
     #Get a list with dir paths where data are.
@@ -159,27 +196,14 @@ def generate_radar_acum_trim():
                 "Precipitación equivalente",
                 'mm/h') )
         pr.pyart.io.write_cfradial( path2save + 'radar_' + file[-7:-3] + '.nc', radar )  
+
+def plot_grid( radar, field, display, fig, projection, title, filename ):
+    a,_= pr.plot_field_labels_acum_section( radar, field, display, fig, projection, title, filename )
+    pr.plot_heat_map( a, filename + '_map' )
+
+    return sum(a)
 # No Verificados
 # ==============
-
-
-def plot_acums():
-    paths= pr.get_path_files( path2save, "201[0-9]?" )    
-
-    for path in paths:
-        files= pr.get_path_files( path+'/', 'qro_radar_acum')
-
-        radar= pr.get_radar(files[0])
-        radar_subplots= list( radar.fields.keys() )
-
-        display = pyart.graph.RadarMapDisplay( radar )
-        fig = plt.figure(figsize=(25,25))
-
-        projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
-
-        n= 3
-        plot(radar,display,fig,n,radar_subplots,projection)
-        pr.plt.savefig(path)
 
 def plot(radar,display,fig,n,radar_subplots,projection,xpoint,ypoint):
     m= len(radar_subplots)/n
@@ -269,66 +293,6 @@ def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     ax.plot(lat_lines,lon_lines,'o')
     plt.savefig("binsprueba")
     
-def pruebas_multiplot():
-    radar_name= "/home/arielcg/Documentos/Tesis/src/data/radar/2017/qro_radar_acum.cn"
-    radar= pr.get_radar(radar_name)
-    radar_subplots= list( radar.fields.keys() )
-
-    display = pyart.graph.RadarMapDisplay( radar )
-    fig = plt.figure(figsize=(25,25))
-
-    projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0],
-         central_longitude=radar.longitude['data'][0])
-
-    n= 3
-    plot(radar,display,fig,n,radar_subplots,projection)
-
-
-def generate_radar_acum_year():
-    
-    paths= pr.get_path_files( path2save, "201[0-9]" )    
-    
-    base_radar= pr.clear_radar( pr.get_radar( filename ) )
-    
-    for path in paths:
-        files= pr.get_path_files( path+'/', 'qro_radar_acum')
-        radar= pr.get_radar( files[0] )
-
-        radar= pr.get_radar( files[0] )
-        radar_subplots= list( radar.fields.keys() )
-
-        y_acum= np.zeros((360,921), dtype=np.float64)
-        for month in radar_subplots:
-            y_acum+= radar.fields[month]['data'].filled()
-
-        radar_dic= pr.numpy_to_radar_dict( y_acum.astype(np.float64), f"Acumulado anual para {path[-4:]}",f'ACUM_QRO_{path[-4:]}',"Precipitación acumulada [$mm h^-1$]")
-
-        base_radar.add_field( f'ACUM_QRO_{path[-4:]}', radar_dic )
-
-    plot_radar_gen( base_radar, path2fig + "yearAcumPR" )
-
-def radar_data_exploration():
-    """Esta función intenta mostrar cómo usar las funciones
-    que se desarrollaron para la tesis y que permite facilitar las 
-    operaciones con las bibliotecas de wradlib y pyart. En partícular 
-    vamos a graficar la información del radar en todas las partes
-    de la cadena de procesamiento.
-    """
-    #Obtenemos las rutas de los archivos de radar 
-    paths= pr.get_path_files( path2root, "QRO_201[0-9]?" )
-    
-    #Obtenemos los archivos que se encuentran en las rutas
-    files= pr.get_files_from_path( paths[0] )
-
-    #Obtenemos el archivo de nuestro interes, para nosotros es julio 15 de 2015
-    path_radar_07_15= files['07']['24'][10]
-
-    #Obtenemos el archivo iris
-    iris_07_15= pr.get_iris( path_radar_07_15 )
-
-    #Obtenemos la metadata
-    r, az, coord= pr.get_metadata( iris_07_15 )
-    data= pr.get_reflectivity( iris_07_15 )
 
 def measuere_bins():
     """_summary_
@@ -436,11 +400,7 @@ def plot_clear():
     plt.cla()
     plt.clf()
 
-def plot_grid( radar, field, display, fig, projection, title, filename ):
-    a,b= pr.plot_field_labels_acum_section( radar, field, display, fig, projection, title, filename )
-    pr.plot_heat_map( a, filename+'_map' )
 
-    return sum(a)
 
 def print_acum( data, segmentos ): 
     
@@ -495,11 +455,9 @@ def acum_csv():
 
 
 
-
-
 if __name__ == '__main__':
-    generate_radar_acum_trim()
-    
+    plot_trims()
+
     # #acum_csv()
     # radar= pr.get_radar( '/home/arielcg/Documentos/Tesis/src/data/radar/radar_2015.nc' )
     

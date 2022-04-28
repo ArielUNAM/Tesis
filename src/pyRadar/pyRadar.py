@@ -1239,7 +1239,7 @@ def plot_field_points_section( radar, field:str, display:pyart.graph.RadarMapDis
     #savefig
     plt.savefig( filename )
 
-def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, middle_points:bool=True, max_val:float=10000):
+def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, middle_points:bool=True, max_val:float=10000,nnear=1):
     #Zeros field
     radar.add_field( 'ZEROS', numpy_to_radar_dict(
         np.zeros((360,921)),
@@ -1271,7 +1271,7 @@ def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarM
                           fig= fig, ax= ax,
                           title= title,
                           cmap= cm.get_cmap('GnBu'),
-                          #colorbar_flag=False
+                          #olorbar_flag=False
                         )
     display.plot_point(lon_0, lat_0,label_text='Radar')
 
@@ -1288,9 +1288,16 @@ def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarM
 
         data= radar.fields[ field ]['data']
 
-        radar_at_gages= get_acum_by_gages( lon, lat, data, 5)
+        radar_at_gages= get_acum_by_gages( lon, lat, data, nnear)
+
         gages= [ gage for gage in radar_at_gages ]
-        gages= [ round(sum(gage)) if round(sum(gage)) < max_val else max_val for gage in gages ]
+
+        if nnear > 1:
+            #gages= [ round(sum(gage)) if round(sum(gage)) < max_val else max_val for gage in gages ]
+            gages= [ round(sum(gage)) for gage in gages ]
+        else:
+            gages= [ round(gage) for gage in gages ]
+
         plot_labels( display, gages, mp)
         
 
@@ -1308,6 +1315,9 @@ def plot_heat_map( gages:list , filename,  vmax=3000):
     data= np.rot90(np.reshape( gages, (n,n)),3 )
 
     plt.imshow( data, vmin=0, vmax=vmax, cmap='GnBu', aspect='auto' )
+
+    plt.xticks([])
+    plt.yticks([])
     
     plt.colorbar() 
     plt.savefig( filename )
