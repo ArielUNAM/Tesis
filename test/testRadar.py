@@ -309,7 +309,7 @@ def get_acum_seg( M, data, nnear ):
     return g_values
     #pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
 
-def monthy_seg_csv():
+def seg_csv():
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
 
     configurations= get_configs( config2 )
@@ -335,9 +335,6 @@ def monthy_seg_csv():
             d_acum[ field ]= vals
 
         pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3]+'_mensual_config2' + '.csv')
-
-def anual_seg_csv():
-    pass
 
 def locations_csv():
     pass
@@ -407,7 +404,6 @@ def plot_seg():
     #savefig
     plt.savefig( path2fig +year+ '_config3' )
 
-
 def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     """Plot the entire radar domain and zoom into the surrounding of the rain gauge locations
     """
@@ -436,59 +432,6 @@ def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     ax = fig.add_subplot(133)
     ax.plot(lat_lines,lon_lines,'o')
     plt.savefig("binsprueba")
-    
-
-def print_acum( data, segmentos ): 
-    
-    segmentos= [re.findall( 'segmento_\d{1}', x ) for x in dir(config1)]
-    segmentos= [item for sublist in segmentos for item in sublist]
-
-    acums= {}
-    for segmento in segmentos:
-        #P1,P2,P3,P4= config3.segmento_1()
-        P1,P2,P3,P4= getattr( config1, segmento )()
-        d_acum,_,_= pr.get_acum_from_rect( P1,P2,P3,P4,10,data )
-        acums[segmento]= d_acum
-    
-    print( acums )
-
-
-def acum_csv():
-#    plot_anual()
-    files= pr.get_path_files( path2save, 'radar_\d{4}\.nc$', is_dir=False )
-    n_points= 15
-    nnear= 1
-
-    for file in files:
-        radar= pr.get_radar( file )
-
-        fields= pr.get_all_fields( radar )
-        #Define space 
-        lat_max= 19.8; lat_min= 21.7
-        lon_max= -100.59; lon_min= -99.0
-    
-        # #Lines
-        lat_lines=np.linspace(lat_min, lat_max, n_points)
-        lon_lines=np.linspace(lon_min, lon_max, n_points)
-
-        #data= pr.get_acum_from_fields( radar, fields )
-        acum= {}
-        for field in fields:
-            data= radar.fields[ field ]['data'].filled()
-        
-
-            mp= pr.get_middle_points( lon_lines, lat_lines )
-
-            lon= [ point[0] for point in mp ]
-            lat= [ point[1] for point in mp ]
-
-            radar_at_gages= pr.get_acum_by_gages( lon, lat, data, nnear)
-            gages= [ gage for gage in radar_at_gages ]
-
-            acum[field]= sum(gages)
-
-        pd.DataFrame.from_dict( data=acum, orient='index' ).to_csv( file[-7:-3] + '.csv')#, index=False )
-
 
 def acum_from_files(): 
     import json
@@ -525,180 +468,13 @@ def acum_from_files():
             write_file= open(year + file[-10:]+".json", "w")
             json.dump(acum, write_file)
             write_file.close()
-            
-        # a_file = open("data.json", "r")
-        # output = a_file.read()
-        # pd.DataFrame.from_dict( data=acum, orient='index' ).to_csv( year + file[-10:]+ '.csv')
-def data_sections():
-    years= ['2015', '2016', '2017']
-    #n_points= 15
-    nnear= 1
-    for year in years:
-        print(year)
-        filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
-
-        radar= pr.get_radar( filename )
-
-        fields= pr.get_all_fields( radar )
-
-        segmentos= [re.findall( 'segmento_\d{1}', x ) for x in dir(config1)]
-        segmentos= [item for sublist in segmentos for item in sublist]
-
-        d_acum= {}
-        for field in fields:
-            data= radar.fields[ field ]['data'].filled()
-            acum= 0
-            for segmento in segmentos:
-                P1,P2,P3,P4, n_points= getattr( config1, segmento )()
-                y= lambda m,b,x: m*x + b
-                x= lambda m,b,y: (y-b)/m
-                
-                m,b= pr.get_m_b( P1, P2 )
-                Y1= np.linspace( P1[1], P2[1],n_points)
-                F1= [ ( x(m,b,j), j ) for j in Y1]
-
-                m,b= pr.get_m_b( P3, P4 )
-                Y2= np.linspace( P3[1], P4[1],n_points)
-                F2= [ ( x(m,b,j), j ) for j in Y2]
-                
-                M= []
-                #Vamos a generar lineas para cada punto
-                for l1, l2 in zip( F1, F2 ):
-                    X= np.linspace( l1[0], l2[0], n_points )
-                    m,b= pr.get_m_b( l1, l2 )
-                    M.append( [ 
-                        [ round(i, ndigits=4) for i in X ],
-                        [ round(y(m,b,i),ndigits=4) for i in X ]
-                    ] )
-
-                for coords in M:
-                    radar_at_gages= pr.get_acum_by_gages( coords[0],coords[1], data, nnear)
-                    gages= [ gage for gage in radar_at_gages ]
-                    acum+= sum(gages)
-
-            d_acum[field]= acum
-        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( year + 'config1'  + '.csv')   
-                
-
-def acum_csv():
-#    plot_anual()
-    years= ['2015', '2016', '2017']
-    n_points= 15
-    nnear= 1
-    for year in years:
-        filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
-
-        radar= pr.get_radar( filename )
-
-        fields= pr.get_all_fields( radar )
-        #Define space 
-        lat_max= 19.8; lat_min= 21.7
-        lon_max= -100.59; lon_min= -99.0
-    
-        # #Lines
-        lat_lines=np.linspace(lat_min, lat_max, n_points)
-        lon_lines=np.linspace(lon_min, lon_max, n_points)
-
-        #data= pr.get_acum_from_fields( radar, fields )
-        acum= {}
-        for field in fields:
-            data= radar.fields[ field ]['data'].filled()
-        
-
-            mp= pr.get_middle_points( lon_lines, lat_lines )
-
-            lon= [ point[0] for point in mp ]
-            lat= [ point[1] for point in mp ]
-
-        
-
-            radar_at_gages= pr.get_acum_by_gages( lon, lat, data, nnear)
-            gages= [ gage for gage in radar_at_gages ]
-
-            acum[field]= sum(gages)
-
-        pd.DataFrame.from_dict( data=acum, orient='index' ).to_csv( year + '.csv')#, index=False )
-
-        #gages= [ round(sum(gage)) if round(sum(gage)) < max_val else max_val for gage in gages ]
-        #gages= [ round(sum(gage)) for gage in gages ]
-        # n= int(np.sqrt( len(gages) ))
-        # m_gages= np.rot90(np.reshape( gages, (n,n)), 3 )
-        
-        # plt.imshow( m_gages )
-        # plt.savefig("pureba1")
-
-        # x,y= np.where( m_gages < 80 )
-        # for i, j in zip(x,y):
-        #     m_gages[i][j]= sum(pr.get_vn_neig( m_gages, (i,j) ))/4
-        # plot_clear()
-        # plt.imshow( m_gages )
-        # plt.savefig("pureba2")
-        
-
-
-    
-
-def aux2():
-    filename= "/home/arielcg/Documentos/Tesis/src/data/radar/2015/qro_radar_acum.cn"
-    radar= pr.get_radar( filename )
-
-    #plot_bins(binx,biny,binx_nn,biny_nn,x,y)
-    display= pyart.graph.RadarMapDisplay( radar )
-    fig= plt.figure( figsize=(25,25))
-    projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
-
-    fields= radar.metadata['field_names'].split(', ')
-    acum= np.zeros( (360,921) )
-
-    for field in fields:
-        acum+= radar.fields[field]['data'].filled()
-    
-    radar.add_field( 'ACUM', pr.numpy_to_radar_dict(
-        np.zeros((360,921)),
-        'Acumulado anual 2015',
-        'ACUM ANUAL',
-        'mm/h') )
-
-    # pr.plot_field( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba1" )
-    # pr.plot_field_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba2" )
-    # pr.plot_field_points_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba3" )
-    #pr.plot_field_labels_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba4" )
-    gages, mp= pr.plot_field_labels_acum_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba4" )
-    pr.plot_heat_map( gages, 'prueba4_heat' )
-
-
-def aux():
-    filename= "/home/arielcg/Documentos/Tesis/src/data/radar/2015/qro_radar_acum.cn"
-    radar= pr.get_radar( filename )
-
-    #plot_bins(binx,biny,binx_nn,biny_nn,x,y)
-    display= pyart.graph.RadarMapDisplay( radar )
-    fig= plt.figure( figsize=(25,25))
-    projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
-
-    fields= radar.metadata['field_names'].split(', ')
-    acum= np.zeros( (360,921) )
-
-    for field in fields:
-        acum+= radar.fields[field]['data'].filled()
-    
-    radar.add_field( 'ACUM', pr.numpy_to_radar_dict(
-        acum,
-        'Acumulado anual 2015',
-        'ACUM ANUAL',
-        'mm/h') )
-
-    # pr.plot_field( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba1" )
-    # pr.plot_field_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba2" )
-    # pr.plot_field_points_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba3" )
-    gages, mp= pr.plot_field_labels_section( radar, 'ACUM', display, fig, projection, "Prueba de funcion", "prueba4" )
 
 if __name__ == '__main__':
     #plot_trims()
     #plot_anual()
     #monthy_csv()
     #plot_seg()
-    monthy_seg_csv()
+    seg_csv()
 
     # #acum_csv()
     # radar= pr.get_radar( '/home/arielcg/Documentos/Tesis/src/data/radar/radar_2015.nc' )
