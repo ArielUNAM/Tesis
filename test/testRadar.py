@@ -1,5 +1,4 @@
 import sys
-
 sys.path.append('../')
 
 from src.pyRadar.dataPaths import *
@@ -9,10 +8,6 @@ import src.pyRadar.pyRadar as pr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import cm
-import pyart
-import cartopy.crs as ccrs 
-import cartopy.feature as cfeature
 import re
 import cv2
 from os import remove
@@ -25,9 +20,9 @@ tirm_to_month= {'01':'ENERO', '02':'FEBRERO','03':'MARZO','04':'ABRIL','05':'MAY
 # Verificados
 # ==============
 def plot_config( radar ):
-    display= pyart.graph.RadarMapDisplay( radar )
+    display= pr.pyart.graph.RadarMapDisplay( radar )
     fig= plt.figure( figsize=(25,25))
-    projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
+    projection = pr.ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
 
     return display, fig, projection
 
@@ -312,7 +307,7 @@ def get_acum_seg( M, data, nnear ):
 def seg_csv():
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
 
-    configurations= get_configs( config2 )
+    configurations= get_configs( config3 )
     nnear= 1
 
     d_acum= {}
@@ -334,10 +329,10 @@ def seg_csv():
                     get_acum_seg( M, data, nnear ) ])
             d_acum[ field ]= vals
 
-        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3]+'_mensual_config2' + '.csv')
+        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3]+'_mensual_config3' + '.csv')
 
 def locations_csv():
-    pass
+    files= pr.get_path_files( "/home/arielcg/Documentos/Tesis/src/data/base/", ".*\.csv$", is_dir=False )
 # No Verificados
 # ==============
 
@@ -470,18 +465,5 @@ def acum_from_files():
             write_file.close()
 
 if __name__ == '__main__':
-    #plot_trims()
-    #plot_anual()
-    #monthy_csv()
-    #plot_seg()
     seg_csv()
 
-    # #acum_csv()
-    # radar= pr.get_radar( '/home/arielcg/Documentos/Tesis/src/data/radar/radar_2015.nc' )
-    
-    # fields= radar.fields.keys()
-    # configs= plot_config( radar )
-    # for field in fields:
-    #     plot_clear()
-    #     pr.plot_field( radar, field, configs[0],configs[1],configs[2],  "Precipitación equivalente acumulada", path2fig + field)
-    
