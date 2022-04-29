@@ -765,6 +765,15 @@ def get_coords( radar:pyart.core.radar.Radar )->tuple:
 
 ## Plotting
 ## ========================================
+def __axis_config(ax):
+    ax.set_aspect("equal")
+    ax.add_feature(cfeature.COASTLINE)
+    ax.add_feature(cfeature.OCEAN, facecolor='#CCFEFF')
+    ax.add_feature(cfeature.LAKES, facecolor='#CCFEFF')
+    ax.add_feature(cfeature.RIVERS, edgecolor='#CCFEFF')
+    ax.add_feature(cfeature.LAND, facecolor='#FFE9B5')
+    ax.add_feature(cfeature.STATES, edgecolor='black', zorder=10)
+
 def __plot_reflectivity(data, title, filename, fig, vmax=45):
     
     projection = ccrs.LambertConformal(central_latitude=data.latitude['data'][0], central_longitude=data.longitude['data'][0])
@@ -785,6 +794,8 @@ def __plot_reflectivity(data, title, filename, fig, vmax=45):
                 #title=title,
                 cmap=cm.get_cmap(CMAP)
                 )
+    __axis_config( ax )
+    
     
     plt.savefig(filename)
 
@@ -876,6 +887,8 @@ def plot_clutter( data, suptitle:str, filename:str,data_title:str="Datos con des
     ax, pm= wl.vis.plot_ppi( clmap, ax=ax, cmap=plt.cm.gray)#cmap='GnBu_r' )
     ax.set_title(clutter_title,y=1.05)
 
+    __axis_config( ax )
+
     plt.grid(True)
 
     #Set labels and titles
@@ -906,6 +919,8 @@ def __plot_beam(radar, beam, title, filename, fig):
 
     display.plot_line_geo([lon_0,beam[0]],[lat_0,beam], color='black')
     # ax.xaxis.label.set_size(50)
+
+    __axis_config( ax )
 
     plt.savefig(filename)
 
@@ -940,6 +955,8 @@ def plot_beam( data, beam, title, bar_label, filename, xlabel="Rango [km]", ylab
     plt.title( title, y=1.02)
     plt.xlabel( xlabel ); plt.ylabel( ylabel )
     plt.grid(color="grey")
+
+    __axis_config( ax )
 
     cb= plt.colorbar( cf, shrink=0.8)
     cb.set_label( bar_label )
@@ -1012,7 +1029,7 @@ def __get_att_mk( data ):
     constraint_args=[[59.0],[20.0]])
 
 def plot_attenuation( data, beams, filename:str, ylim=30,pia_title:str="PIA according to Kraemer", beams_title:str="PIA according to Kraemer", type:str="kraemer"):
-    """Plot two figures
+    """Plot two figuresincl
 
     :param data: Raw data
     :type data: np.arange
@@ -1130,7 +1147,7 @@ def plot_field( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.Rad
     #savefig
     plt.savefig( filename )
 
-def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200):
+def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, savefig=True):
     """Plot a section at a radar
 
     :param radar: _description_
@@ -1196,7 +1213,8 @@ def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.g
     # ax.xaxis.label.set_size(50)
 
     #savefig
-    plt.savefig( filename )
+    if savefig:
+        plt.savefig( filename )
 
 def plot_field_points_section( radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, middle_points:bool=True):
     #Figure
