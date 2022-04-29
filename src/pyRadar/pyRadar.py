@@ -74,19 +74,12 @@
 # ================
 from genericpath import isdir
 import itertools
-from tkinter import Y
-from turtle import down, left, right, up
-from wradlib.util import get_wradlib_data_file
 import wradlib as wl
 import pyart
-import wradlib.vis as vis
-import wradlib.util as util
-import osgeo as osr
 
 # Data processing libraries
 # ================
 import numpy as np
-import numpy.ma as ma
 from collections import OrderedDict
 import datetime
 import pandas as pd
@@ -110,10 +103,10 @@ import os
 # =================
 import warnings
 warnings.filterwarnings('ignore')
-try:
-    get_ipython().magic("matplotlib inline")
-except:
-    plt.ion()
+# try:
+#     get_ipython().magic("matplotlib inline")
+# except:
+#     plt.ion()
 
 
 # VARIABLES

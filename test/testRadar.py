@@ -429,41 +429,29 @@ def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     plt.savefig("binsprueba")
 
 def acum_from_files(): 
-    import json
     years= ['2015', '2016', '2017']
-    #n_points= 15
-    nnear= 4
-    files= pr.get_path_files( "/home/arielcg/Documentos/Tesis/src/data/base/", ".*\.csv$" )
+    nnear= 2
+    files= pr.get_path_files( "/home/arielcg/Documentos/Tesis/src/data/base/", ".*\.csv$" , is_dir=False)
     for file in files:
         df= pd.read_csv( file )
         lon = df.Longitude.to_list()
         lat= df.Latitude.to_list()
         for year in years:
             print(year)
-            filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/{year}/qro_radar_acum.cn"
+            filename= f"/home/arielcg/Documentos/Tesis/src/data/radar/radar_{year}.nc"
 
             radar= pr.get_radar( filename )
             fields= pr.get_all_fields( radar )    
             
-            acum= {}
             for field in fields:
                 data= radar.fields[ field ]['data'].filled()
 
                 radar_at_gages= pr.get_acum_by_gages( lon, lat, data, nnear)
                 gages= [ gage for gage in radar_at_gages ]
 
-                
-                vals= []
-                coordss= []
-                for gage, coords in zip( gages, zip(lon,lat) ):
-                    vals.append(sum(gage))
-                    coordss.append(coords)
-                acum[field]= [ coordss, vals ]
-            
-            write_file= open(year + file[-10:]+".json", "w")
-            json.dump(acum, write_file)
-            write_file.close()
+                df[field +'_'+ year]= [ sum(gage) if type( gages ) is list else gage for gage in gages ]
+        df.to_csv( file[:-4]+ '_process' + '.csv' )
 
 if __name__ == '__main__':
-    seg_csv()
+    acum_from_files()
 
