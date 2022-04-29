@@ -235,6 +235,9 @@ def plot_grid( radar, field, display, fig, projection, title, filename ):
 
     return sum(a)
 
+def plot_seg( config ):
+    pass
+
 def monthy_csv():
     #Define si lo quieres en el mismo radar o en otros
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
@@ -281,7 +284,7 @@ def get_lines( I1, I2, n_points ):
     return M
 
 def get_M( config ):
-    P1,P2,P3,P4, n_points= getattr( config3, config )
+    P1,P2,P3,P4, n_points= getattr( config3, config )()
     I1, I2= get_init_lines(P1,P2, P3, P4, n_points)
     return get_lines( I1, I2, n_points )
 
@@ -309,11 +312,12 @@ def get_acum_seg( M, data, nnear ):
 def monthy_seg_csv():
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
 
-    configurations= get_configs( config1 )
+    configurations= get_configs( config2 )
     nnear= 1
 
     d_acum= {}
     for file in files:
+        print(file[-7:-3])
         radar= pr.get_radar( file )
         fields= pr.get_all_fields( radar )
         for field in fields:
@@ -325,10 +329,12 @@ def monthy_seg_csv():
                     data= radar.fields[ field ]['data'].filled()
                 except:
                     data= radar.fields[ field ]['data']
-                vals+= sum( get_acum_seg( M, data, nnear ) )
+                
+                vals+= sum( [ sum( acum ) for acum in 
+                    get_acum_seg( M, data, nnear ) ])
             d_acum[ field ]= vals
 
-        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3]+f'_mensual_{config1}' + '.csv')
+        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3]+'_mensual_config2' + '.csv')
 
 def anual_seg_csv():
     pass
@@ -431,35 +437,6 @@ def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     ax.plot(lat_lines,lon_lines,'o')
     plt.savefig("binsprueba")
     
-
-def measuere_bins():
-    """_summary_
-    """
-    lon= [ -99.,-99.11357143 ]
-    lat= [ 21.78, 21.699428571 ]
-    # lon= [ -99.,-99.11357143, -99.22714286, -99.34071429, -99.45428571, -99.56785714, -99.68142857, -99.795, -99.90857143, -100.02214286, -100.13571429, -100.24928571, -100.36285714, -100.47642857, -100.59 ]
-    # lat= [ 21.7, 21.56428571, 21.42857143, 21.29285714, 21.15714286, 21.02142857, 20.88571429, 20.75, 20.61428571, 20.47857143, 20.34285714, 20.20714286, 20.07142857,19.93571429, 19.8 ]
-    
-    #Get data
-    filename= "/home/arielcg/Documentos/Tesis/src/data/radar/2016/qro_radar_acum.cn"
-    radar= pr.get_radar( filename )
-    radar_subplots= list( radar.fields.keys() )
-    data= radar.fields[ radar_subplots[0] ][ 'data' ].filled()
-
-    radar_at_gages,x,y,binx,biny,binx_nn,biny_nn= get_acum_from_coord(lon,lat, data, nnear=50)
-
-    #plot_bins(binx,biny,binx_nn,biny_nn,x,y)
-    # display= pyart.graph.RadarMapDisplay( radar )
-    # fig= plt.figure( figsize=(25,25))
-    # n=3
-    # projection = ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
-
-    # plot(radar,display,fig,n,radar_subplots,projection,binx_nn,biny_nn)
-
-    #Aca tengo una tupla de coordenadas y de valores para cada punto en la cercania del punto graficado
-    for coor, gaug in zip( zip(lon,lat),radar_at_gages ):
-        print(coor, "Acumulado: " ,sum(gaug))
-
 
 def print_acum( data, segmentos ): 
     
@@ -720,7 +697,8 @@ if __name__ == '__main__':
     #plot_trims()
     #plot_anual()
     #monthy_csv()
-    plot_seg()
+    #plot_seg()
+    monthy_seg_csv()
 
     # #acum_csv()
     # radar= pr.get_radar( '/home/arielcg/Documentos/Tesis/src/data/radar/radar_2015.nc' )

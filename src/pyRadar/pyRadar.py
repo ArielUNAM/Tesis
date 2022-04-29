@@ -1541,68 +1541,6 @@ def get_m_b( X1:tuple, X2:tuple)->tuple:
 
     return m,b
 
-def get_acum_from_rect( P1:tuple, P2:tuple, P3:tuple, P4:tuple, n_points:int, data:np.array,nnear:int=1 )->pd.DataFrame:
-    """Return a table with the acum from a cube limits whit their arist
-
-    :param P1: _description_
-    :type P1: tuple
-    :param P2: _description_
-    :type P2: tuple
-    :param P3: _description_
-    :type P3: tuple
-    :param P4: _description_
-    :type P4: tuple
-    :return: _description_
-    :rtype: pd.DataFrame
-    """
-    y= lambda m,b,x: m*x + b
-    x= lambda m,b,y: (y-b)/m
-
-    
-    m,b= get_m_b( P1, P2 )
-    Y1= np.linspace( P1[1], P2[1],n_points)
-    F1= [ ( x(m,b,j), j ) for j in Y1]
-
-    m,b= get_m_b( P3, P4 )
-    Y2= np.linspace( P3[1], P4[1],n_points)
-    F2= [ ( x(m,b,j), j ) for j in Y2]
-    
-    M= []
-    #Vamos a generar lineas para cada punto
-    for l1, l2 in zip( F1, F2 ):
-        X= np.linspace( l1[0], l2[0], n_points )
-        m,b= get_m_b( l1, l2 )
-        M.append( [ 
-            [ round(i, ndigits=4) for i in X ],
-            [ round(y(m,b,i),ndigits=4) for i in X ]
-        ] )
-
-
-    g_labels= []
-    g_coords= []
-    for coords in M:
-        radar_at_gages,x,y,binx,biny,binx_nn,biny_nn= get_acum_from_coord(coords[0],coords[1], data, nnear=nnear)
-        labels= []
-        coordinates= []
-        for coor, gaug in zip( zip(coords[0],coords[1]),radar_at_gages ):
-            #print(coor, "Acumulado: " ,sum(gaug) if type(gaug) is list else gaug )
-            labels.append( sum(gaug) if type(gaug) is list else gaug )
-            coordinates.append( coor )
-        # plot_point( display, coordinates)
-        #print( coordinates, ':', labels )
-        g_labels.append( labels )
-        g_coords.append( coordinates )
-
-    d_acum= {}
-    i= 0
-    acum= 0
-    for label in g_labels:
-        acum+= sum(label)
-        d_acum[i]= acum
-        i+= 1
-
-    return d_acum, g_coords, g_labels
-
 def get_all_fields( radar ):
     return radar.metadata['field_names'].split(', ')
 
