@@ -94,7 +94,7 @@ def plot_pia():
 
 def plot_acum():
     rainfall= pr.est_rain_rate_z( filename  )
-    pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm/h]$", path2fig + "rainfallWL" )
+    pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm]$", path2fig + "rainfallWL" )
 
 def plot_trims():
     #Define si lo quieres en el mismo radar o en otros
@@ -189,13 +189,13 @@ def annual_acumulation():
                 pr.numpy_to_radar_dict( 
                     data['data'],
                     'Precipitación mensual estimada', 
-                    'Precipitación estimada [$mm/h$]', 'mm/h' )
+                    'Precipitación estimada [$mm$]', 'mm' )
                     )
         radar.add_field( 'ACUM', 
                 pr.numpy_to_radar_dict( 
                     acum,
                     'Precipitación anual estimada', 
-                    'Precipitación estimada [$mm/h$]', 'mm/h' )
+                    'Precipitación estimada [$mm$]', 'mm' )
                     )
         pr.pyart.io.write_cfradial( path2save + 'radar_' + year[-4:] + '.nc', radar )
     
@@ -221,7 +221,7 @@ def generate_radar_acum_trim():
             pr.numpy_to_radar_dict( acum,
                 "Precipitación acumulada para el trimestre {trim}", 
                 "Precipitación equivalente",
-                'mm/h') )
+                'mm') )
         pr.pyart.io.write_cfradial( path2save + 'radar_' + file[-7:-3] + '.nc', radar )  
 
 def plot_grid( radar, field, display, fig, projection, title, filename ):

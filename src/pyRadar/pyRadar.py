@@ -1567,3 +1567,45 @@ def get_vn_neig( matrix, coords ):
         
 
     return( [ up, left, down, right  ] )
+
+def PE( val:float )->float:
+    """La precipitación efectiva se refiere a la parte de la lluvia que puede ser efectivamente utilizada por plantas de forma empirica vamos a usar la ecuación FAO/AGLW
+
+    :param val: Precipitación en mm
+    :type val: float
+    :return: Precipitación efectiva en mm
+    :rtype: float
+    """
+
+    f1= lambda x: 0.6 * x - 10
+    f2= lambda x: 0.8 * x - 24
+
+    return f2( val ) if val > 70 else f1( val )
+
+def VAN( n:int, c:float, p:int ):
+    """Brito aplica la siguiente relación para estimar el consumo de la familia
+
+    :param n: Número de personas en la vivienda
+    :type n: int
+    :param c: Consumo medio de agua por presona por dia
+    :type c: float
+    :param p: PEriodo de consumo considerado
+    :type p: int
+    """
+
+    return n * c * p
+
+def PA( mm:float,  s:float, c:float= 0.85 )->float:
+    """Superficie de techo multiplicada por los milímetros de lluvia que cen en tu región y multiplicado por el coeficiente de captación
+
+    :param mm: Milimetros de lluvia
+    :type mm: float
+    :param c: Coeficiente de captación
+    :type c: float
+    :param s: Superficie de techo
+    :type s: float
+    :return: Volumne de agua cosechable
+    :rtype: float
+    """
+
+    return mm * s * c
