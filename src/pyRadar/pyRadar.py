@@ -1325,8 +1325,6 @@ def plot_heat_map( gages:list , filename, vmax=3000):
     n= int(np.sqrt( len(gages) ))
     data= np.rot90(np.reshape( gages, (n,n)),3 )
 
-    plt.figure(figsize=(10, 8))
-
     plt.imshow( data, vmin=0, vmax=vmax, cmap='GnBu', aspect='auto' )
 
     plt.xticks([])
