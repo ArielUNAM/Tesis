@@ -760,12 +760,12 @@ def get_coords( radar:pyart.core.radar.Radar )->tuple:
 ## ========================================
 def __axis_config(ax):
     ax.set_aspect("equal")
-    ax.add_feature(cfeature.COASTLINE)
-    ax.add_feature(cfeature.OCEAN, facecolor='#CCFEFF')
-    ax.add_feature(cfeature.LAKES, facecolor='#CCFEFF')
-    ax.add_feature(cfeature.RIVERS, edgecolor='#CCFEFF')
-    ax.add_feature(cfeature.LAND, facecolor='#FFE9B5')
-    ax.add_feature(cfeature.STATES, edgecolor='black', zorder=10)
+    #ax.add_feature(cfeature.COASTLINE)
+    # ax.add_feature(cfeature.OCEAN, facecolor='#CCFEFF')
+    # ax.add_feature(cfeature.LAKES, facecolor='#CCFEFF')
+    # ax.add_feature(cfeature.RIVERS, edgecolor='#CCFEFF')
+    # ax.add_feature(cfeature.LAND, facecolor='#FFE9B5')
+    # ax.add_feature(cfeature.STATES, edgecolor='black', zorder=10)
 
 def __plot_reflectivity(data, title, filename, fig, vmax=45):
     
@@ -1256,7 +1256,7 @@ def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarM
         np.zeros((360,921)),
         'Acumulado anual 2015',
         'ACUM ANUAL',
-        'mm/h'),  replace_existing=True)
+        'mm'),  replace_existing=True)
 
     #Figure
     ax= fig.add_subplot( 1,1,1, projection= projection )
@@ -1318,12 +1318,14 @@ def plot_field_labels_acum_section( radar, field:str, display:pyart.graph.RadarM
     #np.rot90(np.reshape(gages, (9,9)),3)
     return gages, mp#, (lon_lines, lat_lines)
 
-def plot_heat_map( gages:list , filename,  vmax=3000):
+def plot_heat_map( gages:list , filename, vmax=3000):
     plt.cla()
     plt.clf()
     
     n= int(np.sqrt( len(gages) ))
     data= np.rot90(np.reshape( gages, (n,n)),3 )
+
+    plt.figure(figsize=(10, 8))
 
     plt.imshow( data, vmin=0, vmax=vmax, cmap='GnBu', aspect='auto' )
 
@@ -1332,7 +1334,6 @@ def plot_heat_map( gages:list , filename,  vmax=3000):
     
     plt.colorbar() 
     plt.savefig( filename )
-    
 
 def plot_field_labels_section( radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, middle_points:bool=True, max_val:float=8000):
 
@@ -1388,7 +1389,7 @@ def plot_field_labels_section( radar, field:str, display:pyart.graph.RadarMapDis
 
 ## Others
 ## ========================================
-def get_acum_by_fields( radar, new_field ,lng_name='Acumulado anual 2015', srt_name='ACUM ANUAL',unit='mm/h' ):
+def get_acum_by_fields( radar, new_field ,lng_name='Acumulado anual 2015', srt_name='ACUM ANUAL',unit='mm' ):
     acum= np.zeros( (360,921) )
     fields= radar.metadata['field_names'].split(', ')
 

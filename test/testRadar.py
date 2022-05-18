@@ -21,7 +21,7 @@ tirm_to_month= {'01':'ENERO', '02':'FEBRERO','03':'MARZO','04':'ABRIL','05':'MAY
 # ==============
 def plot_config( radar ):
     display= pr.pyart.graph.RadarMapDisplay( radar )
-    fig= plt.figure( figsize=(25,25))
+    fig= plt.figure( figsize=(10,8))
     projection = pr.ccrs.LambertConformal(central_latitude=radar.latitude['data'][0], central_longitude=radar.longitude['data'][0])
 
     return display, fig, projection
@@ -96,7 +96,7 @@ def plot_acum():
     rainfall= pr.est_rain_rate_z( filename  )
     pr.plot_reflectivity( rainfall, "Precipitación", "Precipitación equivalente $[mm]$", path2fig + "rainfallWL" )
 
-def plot_trims():
+def plot_trims(CSV_files=True):
     #Define si lo quieres en el mismo radar o en otros
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
 
@@ -107,11 +107,11 @@ def plot_trims():
         conf= plot_config( radar )
         d_acum= {}
         for trim in trimestres:
-            s= plot( radar, trim, conf, f"Acumulación del trimestre {trim}", path2fig + file[-7:-3] )
+            s= plot( radar, trim, conf, f"Acumulación del  {trim}", path2fig + file[-7:-3] )
 
             d_acum[ trim ]= s
-
-        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3] + '_trim' + '.csv')
+        if( CSV_files ):
+            pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3] + '_trim' + '.csv')
 
 def plot_anual():
     #Define si lo quieres en el mismo radar o en otros
@@ -226,12 +226,12 @@ def generate_radar_acum_trim():
 
 def plot_grid( radar, field, display, fig, projection, title, filename ):
     a,_= pr.plot_field_labels_acum_section( radar, field, display, fig, projection, title, filename )
+
+
     pr.plot_heat_map( a, filename + '_map' )
 
     return sum(a)
 
-def plot_seg( config ):
-    pass
 
 def monthy_csv():
     #Define si lo quieres en el mismo radar o en otros
@@ -428,11 +428,13 @@ def plot_bins(binx,biny,binx_nn,biny_nn,x,y):
     ax.plot(lat_lines,lon_lines,'o')
     plt.savefig("binsprueba")
 
-def acum_from_files(): 
+def acum_annual_from_files(): 
     years= ['2015', '2016', '2017']
     nnear= 2
     files= pr.get_path_files( "/home/arielcg/Documentos/Tesis/src/data/base/", ".*\.csv$" , is_dir=False)
+    
     for file in files:
+        
         df= pd.read_csv( file )
         lon = df.Longitude.to_list()
         lat= df.Latitude.to_list()
@@ -450,8 +452,11 @@ def acum_from_files():
                 gages= [ gage for gage in radar_at_gages ]
 
                 df[field +'_'+ year]= [ sum(gage) if type( gages ) is list else gage for gage in gages ]
+                
         df.to_csv( file[:-4]+ '_process' + '.csv' )
 
+
 if __name__ == '__main__':
-    acum_from_files()
+    #acum_annual_from_files()
+    plot_trims(False)
 
