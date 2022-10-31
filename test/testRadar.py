@@ -30,21 +30,22 @@ def plot_clear():
     plt.cla()
     plt.clf()
 
-def plot( radar, field, conf, title, filename ):
+def plot( radar, field, conf, title, filename, colorbar_flag=True ):
+    #Entire radar plot
     plot_clear()
-    pr.plot_field( radar, field, conf[0], conf[1], conf[2], title, filename +'_' + field )
+    pr.plot_field( radar, field, conf[0], conf[1], conf[2], title, filename +'_' + field, colorbar_flag=colorbar_flag)
     
     plot_clear()
-    pr.plot_field_section( radar, field, conf[0], conf[1], conf[2], title, filename +'_sec_' + field )
+    pr.plot_field_section( radar, field, conf[0], conf[1], conf[2], title, filename +'_sec_' + field, colorbar_flag=colorbar_flag )
 
     plot_clear()
     s= plot_grid( radar, field, conf[0], conf[1], conf[2], title, filename + '_sec_vals_' + field )
 
-    img_over_post(filename +'_sec_vals_' + field +'.png',filename + '_sec_vals_' + field + '_map.png', filename +'_'+ field+'_map')
+    #img_over_post(filename +'_sec_vals_' + field +'.png',filename + '_sec_vals_' + field + '_map.png', filename +'_'+ field+'_map')
 
-    remove(filename + '_sec_vals_' + field +'.png')
+    #remove(filename + '_sec_vals_' + field +'.png')
     
-    remove(filename + '_sec_vals_' + field + '_map'+'.png')
+    #remove(filename + '_sec_vals_' + field + '_map'+'.png')
 
     return s
 
@@ -102,31 +103,40 @@ def plot_trims(CSV_files=True):
 
     trimestres= ['Trimestre 1', 'Trimestre 2', 'Trimestre 3', 'Trimestre 4']
 
+    colorbar_flag= True
+
     for file in files:
         radar= pr.get_radar( file )
         conf= plot_config( radar )
         d_acum= {}
         for trim in trimestres:
-            s= plot( radar, trim, conf, f"Acumulación del  {trim}", path2fig + file[-7:-3] )
+            s= plot( radar, trim, conf, f"Acumulación del  {trim}", path2fig + file[-7:-3], colorbar_flag=colorbar_flag )
+            colorbar_flag= colorbar_flag if not colorbar_flag else False
 
             d_acum[ trim ]= s
         if( CSV_files ):
             pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( file[-7:-3] + '_trim' + '.csv')
 
-def plot_anual():
+def plot_anual(to_csv=True):
     #Define si lo quieres en el mismo radar o en otros
     files= pr.get_path_files( path2save, "radar_201\d{1}", is_dir=False ) 
+
+    colorbar_flag= True
 
     d_acum= {}
     for file in files:
         radar= pr.get_radar( file )
         conf= plot_config( radar )
 
-        s= plot( radar, 'ACUM', conf, f"Acumulación del anual {file[-7:-3]}", path2fig + file[-7:-3] )
+        s= plot( radar, 'ACUM', conf, f"Acumulación del anual {file[-7:-3]}", path2fig + file[-7:-3], colorbar_flag=colorbar_flag )
 
         d_acum[ file[-7:-3] ]= s
 
-    pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( 'Anual' + '.csv')
+        colorbar_flag= colorbar_flag if not colorbar_flag else False
+        
+
+    if( to_csv ):
+        pd.DataFrame.from_dict( data=d_acum, orient='index' ).to_csv( 'Anual' + '.csv')
 
 def img_over_post(f1,f2,filename):
     img1= cv2.imread(f1)
@@ -175,7 +185,7 @@ def monthy_acumulation():
             np.savez_compressed( path2save + year[-4:] + '/'+  year[-4:]+ month[-2:] , data= acum)
 
 def annual_acumulation():
-    years= pr.get_path_files( path2save, "\d{4}" )
+    years= pr.get_path_files( path2save, "x\d{4}" )
     #years= pr.get_path_files( path2save, "2017" )
     for year in years:
         print(year[-4:])
@@ -458,5 +468,5 @@ def acum_annual_from_files():
 
 if __name__ == '__main__':
     #acum_annual_from_files()
-    plot_trims(False)
-
+    #plot_trims(False)
+    plot_anual(False)

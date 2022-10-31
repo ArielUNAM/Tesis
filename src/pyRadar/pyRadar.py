@@ -1090,7 +1090,7 @@ def plot_point( display:pyart.graph.RadarMapDisplay,  coords:list ):
 #     for _, coord in df[['Latitude','Longitude']].iterrows():
 #         display.plot_point(coord[1], coord[0], 'None',label_text=name, color='r', label_offset=(-0.01,0))
 
-def plot_field( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, vmin= 0, vmax= 200):
+def plot_field( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, vmin= 0, vmax= 200, colorbar_flag:bool= True):
     """Plot the ppi representation from a radar object and the given field
 
     :param radar: A pyart radar object
@@ -1127,7 +1127,8 @@ def plot_field( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.Rad
                           projection= projection,
                           fig= fig, ax= ax,
                           title= title,
-                          cmap= cm.get_cmap('GnBu')
+                          cmap= cm.get_cmap('GnBu'),
+                          colorbar_flag= colorbar_flag,
                         )
     display.plot_point(lon_0, lat_0,label_text='Radar')
 
@@ -1140,7 +1141,7 @@ def plot_field( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.Rad
     #savefig
     plt.savefig( filename )
 
-def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, savefig=True):
+def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.graph.RadarMapDisplay,  fig, projection,title:str, filename:str, lat_max:float= 19.8, lat_min:float= 21.7,lon_max:float= -100.59, lon_min:float= -99.0, n_blocks:int= 15, vmin:int= 0, vmax:int= 200, savefig=True, colorbar_flag:bool=True):
     """Plot a section at a radar
 
     :param radar: _description_
@@ -1196,7 +1197,7 @@ def plot_field_section( radar:pyart.core.radar.Radar, field:str, display:pyart.g
                           fig= fig, ax= ax,
                           title= title,
                           cmap= cm.get_cmap('GnBu'),
-                          #colorbar_flag=False
+                          colorbar_flag=colorbar_flag,
                         )
     display.plot_point(lon_0, lat_0,label_text='Radar')
 
